@@ -53,6 +53,27 @@ public/             Archivos estáticos (favicon, CV en PDF…)
 Una sola página por idioma con secciones y menú de anclas:
 `#projects`, `#about`, `#cv`, `#contact`.
 
+## Datos personales
+
+Confirmados por el autor. En la fase 3 pasan a `src/data/profile.ts` (datos)
+y a `src/i18n/` (textos traducibles).
+
+| Dato      | Valor                                            |
+| --------- | ------------------------------------------------ |
+| Nombre    | Alex Jimenez Teba                                |
+| Titular   | Estudiante de DAM                                |
+| Bio corta | **Pendiente**                                    |
+| GitHub    | https://github.com/alexjt6                       |
+| LinkedIn  | https://www.linkedin.com/in/alexjt607/           |
+| Email     | alexjt607@gmail.com                              |
+| Foto      | No                                               |
+| Formación | 2.º de DAM (centro y años: **pendiente**)        |
+| CV en PDF | **Pendiente** (botón preparado pero deshabilitado) |
+
+- **No mostrar una lista de tecnologías personales** por ahora ("Sobre mí"
+  solo lleva la formación). Las tecnologías de cada proyecto sí aparecen en
+  su tarjeta.
+
 ## Convenciones
 
 - **Simplicidad ante todo.** Código legible antes que ingenioso. Nada de

@@ -60,15 +60,23 @@ y a `src/i18n/` (textos traducibles).
 
 | Dato      | Valor                                            |
 | --------- | ------------------------------------------------ |
-| Nombre    | Alex Jimenez Teba                                |
-| Titular   | Estudiante de DAM                                |
-| Bio corta | **Pendiente**                                    |
+| Nombre    | Alex Jiménez Teba                                |
+| Titular   | es: Estudiante de DAM · en: Multiplatform App Development (DAM) student |
+| Bio corta | Ver abajo                                        |
 | GitHub    | https://github.com/alexjt6                       |
 | LinkedIn  | https://www.linkedin.com/in/alexjt607/           |
 | Email     | alexjt607@gmail.com                              |
 | Foto      | No                                               |
 | Formación | 2.º de DAM (centro y años: **pendiente**)        |
 | CV en PDF | **Pendiente** (botón preparado pero deshabilitado) |
+
+Bio corta:
+
+- **es:** Estudiante de 2.º de DAM en prácticas de desarrollo de software.
+  Busco oportunidades para seguir aprendiendo y aportar en proyectos reales.
+- **en:** 2nd-year Multiplatform App Development (DAM) student, currently doing
+  a software development internship. I'm looking for opportunities to keep
+  learning and contribute to real projects.
 
 - **No mostrar una lista de tecnologías personales** por ahora ("Sobre mí"
   solo lleva la formación). Las tecnologías de cada proyecto sí aparecen en

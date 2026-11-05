@@ -129,6 +129,20 @@ dirección. Revísalo antes de subirlo. Si se sube algo sensible por error, borr
 y pedir a GitHub Support que borre las copias en caché (guía de GitHub
 [Removing sensitive data from a repository](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository)).
 
+### Foto del inicio
+
+En escritorio, a la derecha del nombre sale un cuadrado con las iniciales **AJT**.
+Para poner una foto en su lugar, guárdala como `src/assets/foto.jpg` (también vale
+`.jpeg`, `.png`, `.webp` o `.avif`; crea la carpeta `assets` si no existe).
+
+No hay que tocar código: al compilar, `Hero.astro` busca ese archivo. Si existe, muestra la
+foto; si no, las iniciales. Para cambiarla, sustituye el archivo; para volver a AJT, bórralo.
+
+- Astro la recorta a cuadrado (por el centro), la reduce a 704×704 y la convierte a webp.
+  Mejor que sea cuadrada y de al menos 704×704 para que se vea nítida.
+- Las fotos `.heic` del iPhone no valen: expórtala antes como JPG.
+- Como el monograma, en móvil y tablet no se muestra.
+
 ### Favicon e imagen de vista previa
 
 - `public/favicon.svg`: icono de la pestaña (iniciales AJT). Es un SVG: se puede editar como texto.

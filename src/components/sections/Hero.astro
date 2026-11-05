@@ -1,10 +1,23 @@
 ---
 // Inicio: nombre, titular y bio corta (los enlaces de contacto están en la sección Contacto).
-// En escritorio (≥ 900 px) se añade a la derecha un monograma decorativo con las iniciales.
+// En escritorio (≥ 900 px) se añade a la derecha un cuadro decorativo:
+// - Si existe src/assets/foto.(jpg|jpeg|png|webp|avif), se muestra esa foto.
+// - Si no, se muestra el monograma con las iniciales (AJT).
+// Así, para poner o cambiar la foto basta con guardar o sustituir el archivo.
+import { Image } from 'astro:assets';
 import { getI18n } from '../../i18n';
 import { profile } from '../../data/profile';
 
 const { t } = getI18n(Astro.currentLocale);
+
+// import.meta.glob busca archivos que encajen con el patrón al compilar.
+// Si no hay ninguno, devuelve un objeto vacío (no da error, a diferencia de un import normal).
+// eager: true → los importa directamente, sin funciones asíncronas.
+const photos = import.meta.glob<{ default: ImageMetadata }>('../../assets/foto.{jpg,jpeg,png,webp,avif}', {
+  eager: true,
+});
+// Nos quedamos con la primera que encuentre (undefined si no hay ninguna)
+const photo = Object.values(photos)[0]?.default;
 ---
 
 <div class="hero container">
@@ -14,8 +27,19 @@ const { t } = getI18n(Astro.currentLocale);
     <p class="bio">{t.hero.bio}</p>
   </div>
 
-  {/* Decorativo: aria-hidden para que el lector de pantalla no lea "AJT" */}
-  <div class="monogram" aria-hidden="true">{profile.initials}</div>
+  {
+    photo ? (
+      // alt="" porque es decorativa: el nombre ya está en el <h1> de al lado.
+      // <Image> la recorta a cuadrado (fit cover), la reduce y la convierte a webp.
+      // 704 px = el doble del tamaño máximo en pantalla (352 px), para que se vea nítida en pantallas retina.
+      <Image class="photo" src={photo} alt="" width={704} height={704} fit="cover" />
+    ) : (
+      // Decorativo: aria-hidden para que el lector de pantalla no lea "AJT"
+      <div class="monogram" aria-hidden="true">
+        {profile.initials}
+      </div>
+    )
+  }
 </div>
 
 <style>
@@ -41,8 +65,9 @@ const { t } = getI18n(Astro.currentLocale);
     font-size: 1.1rem;
   }
 
-  /* En móvil y tablet el monograma no se muestra */
-  .monogram {
+  /* En móvil y tablet ni el monograma ni la foto se muestran */
+  .monogram,
+  .photo {
     display: none;
   }
 
@@ -75,12 +100,23 @@ const { t } = getI18n(Astro.currentLocale);
       font-size: 1.25rem;
     }
 
-    .monogram {
-      display: grid;
-      place-items: center;
+    /* Mismo tamaño y esquinas para los dos, así el diseño no cambia al poner la foto */
+    .monogram,
+    .photo {
       width: clamp(16rem, 20vw, 22rem);
       aspect-ratio: 1;
       border-radius: 2rem;
+    }
+
+    .photo {
+      display: block;
+      height: auto;
+      object-fit: cover; /* por si acaso: rellena el cuadrado sin deformar la foto */
+    }
+
+    .monogram {
+      display: grid;
+      place-items: center;
       background: var(--color-accent);
       color: var(--color-bg);
       font-size: clamp(6rem, 7.5vw, 8.5rem);

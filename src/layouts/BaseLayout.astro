@@ -1,0 +1,119 @@
+---
+// Estructura común de todas las páginas: <html>, <head>, cabecera, contenido y pie.
+import '../styles/global.css';
+import { getAbsoluteLocaleUrl } from 'astro:i18n';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { getI18n } from '../i18n';
+import { profile } from '../data/profile';
+
+interface Props {
+  /** Título de la pestaña. Si no se indica, se usa "Nombre · Portafolio". */
+  title?: string;
+  /** true en páginas que no deben aparecer en buscadores (p. ej. la 404). */
+  noIndex?: boolean;
+}
+
+const { lang, t } = getI18n(Astro.currentLocale);
+const { title = `${profile.name} · ${t.site.title}`, noIndex = false } = Astro.props;
+
+// URLs absolutas para SEO (usan `site` de astro.config.mjs)
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const esUrl = getAbsoluteLocaleUrl('es');
+const enUrl = getAbsoluteLocaleUrl('en');
+
+// Imagen de vista previa al compartir el enlace (1200×630, en public/)
+const ogImage = new URL(`/og-${lang}.png`, Astro.site);
+const ogLocale = lang === 'es' ? 'es_ES' : 'en_US';
+const ogLocaleAlternate = lang === 'es' ? 'en_US' : 'es_ES';
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {/* Icono al añadir la web a la pantalla de inicio del iPhone */}
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>{title}</title>
+    <meta name="description" content={t.site.description} />
+    <meta name="author" content={profile.name} />
+
+    {
+      noIndex ? (
+        <meta name="robots" content="noindex" />
+      ) : (
+        <>
+          {/* Dirección principal de la página y sus versiones en cada idioma */}
+          <link rel="canonical" href={canonicalUrl} />
+          <link rel="alternate" hreflang="es" href={esUrl} />
+          <link rel="alternate" hreflang="en" href={enUrl} />
+          <link rel="alternate" hreflang="x-default" href={esUrl} />
+
+          {/* Open Graph: título, descripción e imagen al compartir el enlace (LinkedIn, WhatsApp…) */}
+          <meta property="og:type" content="website" />
+          <meta property="og:site_name" content={profile.name} />
+          <meta property="og:title" content={title} />
+          <meta property="og:description" content={t.site.description} />
+          <meta property="og:url" content={canonicalUrl} />
+          <meta property="og:locale" content={ogLocale} />
+          <meta property="og:locale:alternate" content={ogLocaleAlternate} />
+          <meta property="og:image" content={ogImage} />
+          <meta property="og:image:type" content="image/png" />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta property="og:image:alt" content={t.site.ogImageAlt} />
+
+          {/* Twitter / X usa sus propias etiquetas (tarjeta con imagen grande) */}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={title} />
+          <meta name="twitter:description" content={t.site.description} />
+          <meta name="twitter:image" content={ogImage} />
+          <meta name="twitter:image:alt" content={t.site.ogImageAlt} />
+        </>
+      )
+    }
+
+    {/*
+      Aplica el tema guardado ANTES de pintar la página, para evitar un parpadeo.
+      is:inline = Astro lo deja tal cual en el HTML (sin procesarlo ni moverlo).
+      CSP: no necesita hash porque Astro pone la <meta> de la CSP al final del <head>
+      y la CSP no se aplica a lo que va antes. Si un día sale un error de CSP en la
+      consola, añadir su hash en security.csp.scriptDirective.hashes (astro.config.mjs).
+    */}
+    <script is:inline>
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        document.documentElement.dataset.theme = savedTheme;
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t.skipLink}</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  /* Enlace para saltar la navegación con el teclado: solo se ve al enfocarlo */
+  .skip-link {
+    position: absolute;
+    top: var(--space-s);
+    left: var(--space-s);
+    z-index: 10;
+    padding: var(--space-s) var(--space-m);
+    background: var(--color-accent);
+    color: var(--color-bg);
+    border-radius: var(--radius);
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus {
+    transform: none;
+  }
+</style>

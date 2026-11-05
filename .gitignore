@@ -1,0 +1,24 @@
+# Dependencias
+node_modules/
+
+# Build de Astro
+dist/
+
+# Tipos generados por Astro
+.astro/
+
+# Variables de entorno
+.env
+.env.*
+
+# Logs
+npm-debug.log*
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Guía para Claude Code: solo en local, no se sube
+CLAUDE.md

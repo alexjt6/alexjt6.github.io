@@ -1,0 +1,141 @@
+---
+// Cabecera: nombre (enlace al inicio), menú de secciones, idioma y tema.
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import LanguagePicker from './LanguagePicker.astro';
+import ThemeToggle from './ThemeToggle.astro';
+import { getI18n } from '../i18n';
+import { profile } from '../data/profile';
+
+const { lang, t } = getI18n(Astro.currentLocale);
+
+// Anclas a las secciones del inicio (los id están en los componentes de sections/).
+// Llevan delante la ruta del inicio ("/" o "/en/") para que funcionen desde cualquier página, como la 404.
+const home = getRelativeLocaleUrl(lang);
+const hasExperience = t.experience.items.length > 0;
+// desktopOnly: el enlace solo se ve desde 900 px (en móvil el menú ya va justo de espacio)
+const links = [
+  { href: `${home}#projects`, label: t.nav.projects, visible: true, desktopOnly: false },
+  { href: `${home}#experience`, label: t.nav.experience, visible: hasExperience, desktopOnly: false },
+  { href: `${home}#technologies`, label: t.nav.technologies, visible: true, desktopOnly: true },
+  { href: `${home}#about`, label: t.nav.about, visible: true, desktopOnly: false },
+  { href: `${home}#cv`, label: t.nav.cv, visible: true, desktopOnly: false },
+  { href: `${home}#contact`, label: t.nav.contact, visible: true, desktopOnly: false },
+].filter((link) => link.visible);
+---
+
+<header class="header">
+  <div class="container header-inner">
+    <a class="brand" href={home}>
+      {profile.name}
+    </a>
+
+    <nav class="nav" aria-label={t.nav.label}>
+      <ul>
+        {
+          links.map((link) => (
+            <li class:list={{ 'desktop-only': link.desktopOnly }}>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="tools">
+      <LanguagePicker />
+      <ThemeToggle />
+    </div>
+  </div>
+</header>
+
+<style>
+  /* Cabecera fija: se queda arriba al hacer scroll (sticky) */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg); /* opaca, para que el contenido no se vea por debajo */
+  }
+
+  /* Móvil: fila 1 = nombre + herramientas, fila 2 = menú.
+     En el HTML el menú va antes que las herramientas para que el orden
+     del tabulador sea lógico en escritorio. */
+  .header-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s) var(--space-m);
+    padding-block: var(--space-s);
+  }
+
+  .brand {
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+  }
+
+  .nav {
+    order: 1; /* en móvil, pasa a la segunda fila */
+    width: 100%;
+  }
+
+  /* Menú siempre en UNA fila: si no cabe (móvil estrecho), se desliza en horizontal.
+     Así la cabecera fija no cambia de altura (y scroll-padding-top de global.css sigue valiendo). */
+  .nav ul {
+    display: flex;
+    gap: 0.75rem;
+    margin: 0;
+    padding: var(--space-xs) 0; /* deja sitio al contorno de foco */
+    overflow-x: auto;
+    white-space: nowrap;
+    list-style: none;
+  }
+
+  .nav a {
+    display: inline-block;
+    padding-block: var(--space-xs); /* área de toque más cómoda en móvil */
+    color: var(--color-muted);
+    text-decoration: none;
+  }
+
+  .nav a:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+
+  /* Escritorio: todo en una fila (nombre, menú, herramientas) */
+  @media (min-width: 48rem) {
+    .header-inner {
+      flex-wrap: nowrap;
+    }
+
+    .nav {
+      order: 0;
+      width: auto;
+      margin-inline-start: auto;
+    }
+
+    .nav ul {
+      gap: var(--space-m);
+    }
+  }
+
+  /* Enlaces que solo se muestran en escritorio */
+  .desktop-only {
+    display: none;
+  }
+
+  @media (min-width: 56.25rem) {
+    .desktop-only {
+      display: list-item;
+    }
+  }
+</style>

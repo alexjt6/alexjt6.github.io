@@ -1,0 +1,118 @@
+---
+// Experiencia (prácticas, trabajos…). Home.astro solo la muestra si hay elementos en experience.items.
+// De cada experiencia, las fechas, el logo, las tareas y las tecnologías solo se pintan si no están vacíos.
+// El logo (public/companies/) solo se ve en escritorio, arriba a la derecha de la tarjeta.
+import Section from '../Section.astro';
+import { getI18n } from '../../i18n';
+
+const { t } = getI18n(Astro.currentLocale);
+---
+
+<Section id="experience" title={t.nav.experience}>
+  <ul class="jobs">
+    {
+      t.experience.items.map((job) => (
+        <li>
+          {/* Logo decorativo (alt vacío): el nombre de la empresa ya está escrito al lado.
+              Va el primero para no alterar el ":last-child" de abajo. */}
+          {job.logo && <img class="company-logo" src={`/companies/${job.logo}`} alt="" loading="lazy" decoding="async" />}
+          <h3>{job.role}</h3>
+          <p class="meta">
+            {job.company}
+            {job.dates && ` · ${job.dates}`}
+          </p>
+          {job.tasks.length > 0 && (
+            <ul class="tasks">
+              {job.tasks.map((task) => (
+                <li>{task}</li>
+              ))}
+            </ul>
+          )}
+          {job.technologies.length > 0 && (
+            <ul class="tags" aria-label={t.experience.technologies}>
+              {job.technologies.map((tech) => (
+                <li>{tech}</li>
+              ))}
+            </ul>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+</Section>
+
+<style>
+  .jobs {
+    display: grid;
+    gap: var(--space-l);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .jobs > li {
+    padding-left: var(--space-m);
+    border-left: 3px solid var(--color-accent);
+  }
+
+  /* Sin margen debajo del último elemento (sea cual sea, según los datos que haya) */
+  .jobs > li > :last-child {
+    margin-bottom: 0;
+  }
+
+  h3 {
+    margin-bottom: var(--space-xs);
+  }
+
+  .meta {
+    color: var(--color-muted);
+  }
+
+  .tasks {
+    margin: 0 0 var(--space-m);
+    padding-left: 1.25rem;
+  }
+
+  /* En móvil y tablet el logo no se muestra (el aspecto queda igual que antes) */
+  .company-logo {
+    display: none;
+  }
+
+  /* Escritorio: tarjetas lado a lado y todas de la misma altura (la de la más alta).
+     auto-fit con mín. 24rem: 2 columnas, o 3 si hay 3 experiencias y caben. */
+  @media (min-width: 56.25rem) {
+    .jobs {
+      grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+    }
+
+    .jobs > li {
+      position: relative; /* referencia para colocar el logo */
+      padding: var(--space-l);
+      border: 1px solid var(--color-border);
+      border-left: 3px solid var(--color-accent);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+    }
+
+    /* Logo arriba a la derecha, sobre una "baldosa" blanca (los logos traen fondo blanco),
+       igual en modo claro y oscuro. Alto fijo; el ancho sale de la proporción de cada imagen. */
+    .company-logo {
+      display: block;
+      position: absolute;
+      top: var(--space-l);
+      right: var(--space-l);
+      width: auto;
+      height: 3.5rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    /* Hueco a la derecha del título y la empresa para que el texto no pase por debajo del logo
+       (9rem = el logo más ancho, 126 px, + separación) */
+    .company-logo ~ h3,
+    .company-logo ~ .meta {
+      padding-right: 9rem;
+    }
+  }
+</style>

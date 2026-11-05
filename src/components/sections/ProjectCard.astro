@@ -1,0 +1,83 @@
+---
+// Tarjeta de un proyecto: captura (opcional), título, descripción, tecnologías y enlaces.
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import { getI18n } from '../../i18n';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { title, description, technologies, image, repo, demo } = project.data;
+const { lang, t } = getI18n(Astro.currentLocale);
+---
+
+<article class="card">
+  {/* <Image> genera una versión optimizada (webp) con su ancho y alto, para que la página no "salte" al cargar */}
+  {image && <Image class="card-image" src={image} alt={`${t.projects.imageAlt} ${title}`} width={800} />}
+
+  <h3>{title}</h3>
+  <p>{description[lang]}</p>
+
+  <ul class="tags" aria-label={t.projects.technologies}>
+    {technologies.map((tech) => <li>{tech}</li>)}
+  </ul>
+
+  {
+    (repo || demo) && (
+      <p class="card-links">
+        {/* El texto oculto añade el nombre del proyecto para lectores de pantalla */}
+        {repo && (
+          <a href={repo}>
+            {t.projects.code}
+            <span class="visually-hidden">{` (${title})`}</span>
+          </a>
+        )}
+        {demo && (
+          <a href={demo}>
+            {t.projects.demo}
+            <span class="visually-hidden">{` (${title})`}</span>
+          </a>
+        )}
+      </p>
+    )
+  }
+</article>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-m);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+  }
+
+  /* Todas las capturas con la misma proporción (16:9), recortando si hace falta */
+  .card-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    margin-bottom: var(--space-m);
+    border: 1px solid var(--color-border);
+    border-radius: calc(var(--radius) / 2);
+  }
+
+  h3 {
+    margin-bottom: var(--space-s);
+  }
+
+  .tags {
+    margin-bottom: var(--space-m);
+  }
+
+  .card-links {
+    display: flex;
+    gap: var(--space-m);
+    margin: auto 0 0; /* empuja los enlaces al final de la tarjeta */
+    font-weight: 600;
+  }
+</style>

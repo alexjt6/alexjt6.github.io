@@ -1,0 +1,97 @@
+---
+// Tecnologías: logos agrupados por categoría.
+// Los datos están en src/data/profile.ts y los logos (Devicon, MIT) en public/logos/.
+import Section from '../Section.astro';
+import { getI18n } from '../../i18n';
+import { profile } from '../../data/profile';
+
+const { t } = getI18n(Astro.currentLocale);
+
+// Orden de las categorías. `as const` hace que TypeScript sepa que solo son estas claves.
+const categories = ['languages', 'web', 'databases', 'frameworks', 'tools'] as const;
+---
+
+<Section id="technologies" title={t.nav.technologies}>
+  <div class="categories">
+    {
+      categories.map((category) => (
+        <div>
+          <h3>{t.technologies.categories[category]}</h3>
+          <ul class="logos">
+            {profile.technologies[category].map((tech) => (
+              <li class="logo">
+                {/* alt: nombre que lee el lector de pantalla (en una imagen equivale a aria-label). title: tooltip */}
+                <img
+                  src={`/logos/${tech.logo}.svg`}
+                  alt={tech.name}
+                  title={tech.name}
+                  width="36"
+                  height="36"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+</Section>
+
+<style>
+  .categories {
+    display: grid;
+    gap: var(--space-l);
+  }
+
+  h3 {
+    margin-bottom: var(--space-s);
+  }
+
+  .logos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* "Baldosa" de cada logo. En modo oscuro es clara: así los logos oscuros
+     (GitHub, Astro, MariaDB…) se ven igual de bien que en modo claro. */
+  .logo {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: light-dark(#ffffff, #e6e8eb);
+  }
+
+  /* Tablet: 2 columnas de categorías */
+  @media (min-width: 48rem) {
+    .categories {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* Escritorio: las 5 categorías en una fila si caben (auto-fit, mín. 12rem cada una)
+     y logos algo más grandes */
+  @media (min-width: 56.25rem) {
+    .categories {
+      grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    }
+
+    .logo {
+      width: 4.25rem;
+      height: 4.25rem;
+    }
+
+    .logo img {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+  }
+</style>

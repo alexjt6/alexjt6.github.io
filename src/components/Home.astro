@@ -1,0 +1,60 @@
+---
+// Contenido de la página de inicio. Lo usan las dos versiones: / (es) y /en/ (en).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from './sections/Hero.astro';
+import Projects from './sections/Projects.astro';
+import Experience from './sections/Experience.astro';
+import Technologies from './sections/Technologies.astro';
+import About from './sections/About.astro';
+import Cv from './sections/Cv.astro';
+import Contact from './sections/Contact.astro';
+import { getI18n } from '../i18n';
+
+const { t } = getI18n(Astro.currentLocale);
+---
+
+<BaseLayout>
+  <Hero />
+  <Projects />
+  {/* La sección Experiencia solo aparece cuando hay alguna en src/i18n/ */}
+  {t.experience.items.length > 0 && <Experience />}
+  <Technologies />
+  <About />
+  {/* CV y Contacto: en escritorio, lado a lado; en móvil, una sección debajo de otra (sin cambios) */}
+  <div class="cv-contact">
+    <div class="cv-contact-inner">
+      <Cv />
+      <Contact />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* Por debajo de 900 px estos dos <div> no tienen estilos: no cambian nada.
+     En escritorio, el de fuera dibuja la línea superior a todo el ancho y el de dentro
+     hace de contenedor con dos columnas. Cada sección mantiene su título y su id (#cv, #contact). */
+  @media (min-width: 56.25rem) {
+    .cv-contact {
+      border-top: 1px solid var(--color-border);
+    }
+
+    .cv-contact-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-xl);
+      max-width: var(--max-width);
+      margin-inline: auto;
+      padding-inline: var(--container-padding);
+    }
+
+    /* :global() porque .section y .container están dentro de otros componentes.
+       Se quitan su línea superior y su margen lateral (ya los pone este bloque). */
+    .cv-contact-inner > :global(.section) {
+      border-top: none;
+    }
+
+    .cv-contact-inner :global(.container) {
+      padding-inline: 0;
+    }
+  }
+</style>

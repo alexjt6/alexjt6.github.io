@@ -1,0 +1,37 @@
+---
+// Envoltorio común de las secciones: <section> con su título <h2>.
+// aria-labelledby enlaza la sección con su título (útil para lectores de pantalla).
+interface Props {
+  id: string; // se usa en el menú: href="#id"
+  title: string;
+}
+
+const { id, title } = Astro.props;
+---
+
+<section id={id} class="section" aria-labelledby={`${id}-title`}>
+  <div class="container">
+    <h2 id={`${id}-title`}>{title}</h2>
+    <slot />
+  </div>
+</section>
+
+<style>
+  .section {
+    padding-block: var(--space-l);
+    border-top: 1px solid var(--color-border);
+  }
+
+  @media (min-width: 48rem) {
+    .section {
+      padding-block: var(--space-xl);
+    }
+  }
+
+  /* Escritorio: algo más de aire entre secciones en pantallas grandes (64–96 px) */
+  @media (min-width: 56.25rem) {
+    .section {
+      padding-block: clamp(4rem, 6vw, 6rem);
+    }
+  }
+</style>

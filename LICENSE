@@ -1,0 +1,27 @@
+Copyright (c) 2026 Alex Jiménez Teba. Todos los derechos reservados.
+
+El código, los textos, el diseño, el CV y las imágenes de este repositorio y de
+la web https://alexjt6.github.io son obra de su autor. Puedes verlos, pero no
+copiarlos, modificarlos, distribuirlos ni reutilizarlos, total o parcialmente,
+sin su permiso previo por escrito.
+
+Excepciones (obras de terceros, con su propia licencia MIT):
+- public/logos/: logos de Devicon (ver public/logos/LICENSE). Los iconos de
+  GitHub y LinkedIn de src/components/sections/Contact.astro usan sus trazados.
+- public/flags/: banderas de flag-icons (ver public/flags/LICENSE).
+Las marcas y logos pertenecen a sus respectivos propietarios.
+
+---
+
+Copyright (c) 2026 Alex Jiménez Teba. All rights reserved.
+
+The code, text, design, CV and images in this repository and on
+https://alexjt6.github.io are the work of their author. You may view them, but
+you may not copy, modify, distribute or reuse them, in whole or in part,
+without prior written permission.
+
+Exceptions (third-party works under their own MIT license):
+- public/logos/: Devicon logos (see public/logos/LICENSE). The GitHub and
+  LinkedIn icons in src/components/sections/Contact.astro use their paths.
+- public/flags/: flag-icons flags (see public/flags/LICENSE).
+Trademarks and logos belong to their respective owners.

@@ -1,0 +1,25 @@
+---
+// Pie de página.
+import { profile } from '../data/profile';
+
+const year = new Date().getFullYear(); // año en que se generó la web
+---
+
+<footer class="footer">
+  <div class="container">
+    <p>© {year} {profile.name}</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding-block: var(--space-l);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-muted);
+    font-size: 0.9rem;
+  }
+
+  .footer p {
+    margin: 0;
+  }
+</style>

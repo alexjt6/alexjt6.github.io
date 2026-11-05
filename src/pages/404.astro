@@ -1,0 +1,44 @@
+---
+// Página 404. GitHub Pages la muestra cuando una dirección no existe.
+// Es la misma para los dos idiomas, así que enseña el mensaje en ambos.
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { translations } from '../i18n';
+
+const { es, en } = translations;
+---
+
+<BaseLayout title={`404 · ${es.notFound.title}`} noIndex>
+  <div class="container not-found">
+    <h1>404</h1>
+    <p>
+      <strong>{es.notFound.title}.</strong> {es.notFound.text}
+    </p>
+    <p lang="en">
+      <strong>{en.notFound.title}.</strong> {en.notFound.text}
+    </p>
+    <ul class="links">
+      <li><a class="button button-primary" href={getRelativeLocaleUrl('es')}>{es.notFound.back}</a></li>
+      <li><a class="button" href={getRelativeLocaleUrl('en')} hreflang="en" lang="en">{en.notFound.back}</a></li>
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .not-found {
+    padding-block: var(--space-xl);
+  }
+
+  h1 {
+    font-size: clamp(3rem, 12vw, 5rem);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    margin: var(--space-l) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

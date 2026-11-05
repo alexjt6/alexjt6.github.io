@@ -1,0 +1,31 @@
+---
+// Enlace a la misma página en el otro idioma.
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import { getI18n, languages } from '../i18n';
+
+const { lang } = getI18n(Astro.currentLocale);
+const otherLang = lang === 'es' ? 'en' : 'es';
+---
+
+{/* lang y hreflang indican el idioma del texto del enlace y de la página destino */}
+<a class="language" href={getRelativeLocaleUrl(otherLang)} hreflang={otherLang} lang={otherLang}>
+  {languages[otherLang]}
+</a>
+
+<style>
+  .language {
+    display: inline-flex;
+    align-items: center;
+    height: 2.5rem; /* misma altura que el botón de tema */
+    padding-inline: var(--space-s);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+
+  .language:hover {
+    border-color: var(--color-accent);
+  }
+</style>

@@ -1,0 +1,185 @@
+---
+// Sobre mí: texto personal, habilidades blandas, idiomas, formación y cursos.
+// Los bloques con la lista o el texto vacíos no se muestran.
+// En escritorio (≥ 900 px) va en dos columnas; en móvil, una debajo de otra (mismo orden).
+import Section from '../Section.astro';
+import { getI18n } from '../../i18n';
+
+const { t } = getI18n(Astro.currentLocale);
+---
+
+<Section id="about" title={t.nav.about}>
+  <div class="about-grid">
+    {/* Columna 1: texto, habilidades blandas e idiomas */}
+    <div class="column">
+      {
+        t.about.intro && (
+          <div class="block">
+            <p class="intro">{t.about.intro}</p>
+          </div>
+        )
+      }
+
+      <div class="block columns">
+        <div>
+          <h3>{t.about.softSkillsTitle}</h3>
+          <ul class="list">
+            {t.about.softSkills.map((skill) => <li>{skill}</li>)}
+          </ul>
+        </div>
+        <div>
+          <h3>{t.about.languagesTitle}</h3>
+          <ul class="languages">
+            {
+              t.about.languages.map((language) => (
+                <li>
+                  {/* Bandera decorativa (alt vacío): el nombre del idioma ya está escrito al lado */}
+                  <img class="flag" src={`/flags/${language.flag}.svg`} alt="" width="20" height="15" loading="lazy" decoding="async" />
+                  <span>
+                    <strong>{language.name}</strong>
+                    {`: ${language.level}`}
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    {/* Columna 2: formación y cursos */}
+    <div class="column">
+      <div class="block">
+        <h3>
+          <span class="emoji" aria-hidden="true">🎓</span>
+          {t.about.educationTitle}
+        </h3>
+        <ul class="timeline">
+          {
+            t.about.education.map((item) => (
+              <li>
+                <p class="item-title">{item.degree}</p>
+                <p class="meta">
+                  {item.center} · {item.years}
+                </p>
+                <p>{item.note}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      {
+        t.about.courses.length > 0 && (
+          <div class="block">
+            <h3>{t.about.coursesTitle}</h3>
+            <ul class="timeline">
+              {t.about.courses.map((course) => (
+                <li>
+                  <p class="item-title">{course.url ? <a href={course.url}>{course.name}</a> : course.name}</p>
+                  <p class="meta">
+                    {course.provider} · {course.date}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</Section>
+
+<style>
+  /* Separación entre bloques (texto, idiomas, formación…) */
+  .block + .block,
+  .column + .column {
+    margin-top: var(--space-l);
+  }
+
+  .intro {
+    max-width: 40rem;
+  }
+
+  /* Habilidades blandas e idiomas: una debajo de otra en móvil, lado a lado desde 768 px */
+  .columns {
+    display: grid;
+    gap: var(--space-l);
+  }
+
+  .list {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  /* Idiomas: la bandera hace de viñeta */
+  .languages {
+    display: grid;
+    gap: var(--space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .languages li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+  }
+
+  .flag {
+    flex-shrink: 0;
+    border-radius: 2px;
+    /* Borde fino para que las banderas con blanco no se pierdan sobre el fondo claro */
+    box-shadow: 0 0 0 1px var(--color-border);
+  }
+
+  .emoji {
+    margin-right: 0.4em;
+  }
+
+  /* Formación y cursos: línea de color a la izquierda de cada elemento */
+  .timeline {
+    display: grid;
+    gap: var(--space-l);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .timeline li {
+    padding-left: var(--space-m);
+    border-left: 3px solid var(--color-accent);
+  }
+
+  .timeline p {
+    margin-bottom: var(--space-xs);
+  }
+
+  .item-title {
+    font-weight: 600;
+  }
+
+  .meta {
+    color: var(--color-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .columns {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* Escritorio: dos columnas */
+  @media (min-width: 56.25rem) {
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-xl);
+    }
+
+    .column + .column {
+      margin-top: 0;
+    }
+  }
+</style>

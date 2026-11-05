@@ -1,0 +1,44 @@
+# Workflow oficial de Astro para GitHub Pages:
+# https://docs.astro.build/en/guides/deploy/github/
+name: Deploy to GitHub Pages
+
+on:
+  # Despliega cada vez que se sube algo a main (p. ej. al mergear una PR)
+  push:
+    branches: [main]
+  # Añadido al workflow oficial: en las PR solo se ejecuta el build,
+  # para ver si compila antes de mergear. No se despliega nada.
+  pull_request:
+  # Permite lanzarlo a mano desde la pestaña Actions
+  workflow_dispatch:
+
+# Permisos: cada job pide solo lo que necesita (mínimo privilegio).
+# Así el build, que instala y ejecuta paquetes de npm, no puede publicar nada.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # leer el código del repo
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      # Instala dependencias, ejecuta `npm run build` y sube dist/ como artefacto
+      - name: Build and upload site
+        uses: withastro/action@v6
+
+  deploy:
+    # Añadido: no desplegar desde una pull request
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write # publicar en GitHub Pages
+      id-token: write # demostrar a Pages que el despliegue viene de este workflow
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

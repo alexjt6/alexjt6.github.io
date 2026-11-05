@@ -1,0 +1,91 @@
+---
+// Inicio: nombre, titular y bio corta (los enlaces de contacto están en la sección Contacto).
+// En escritorio (≥ 900 px) se añade a la derecha un monograma decorativo con las iniciales.
+import { getI18n } from '../../i18n';
+import { profile } from '../../data/profile';
+
+const { t } = getI18n(Astro.currentLocale);
+---
+
+<div class="hero container">
+  <div class="hero-text">
+    <h1>{profile.name}</h1>
+    <p class="headline">{t.hero.headline}</p>
+    <p class="bio">{t.hero.bio}</p>
+  </div>
+
+  {/* Decorativo: aria-hidden para que el lector de pantalla no lea "AJT" */}
+  <div class="monogram" aria-hidden="true">{profile.initials}</div>
+</div>
+
+<style>
+  .hero {
+    padding-block: var(--space-l);
+  }
+
+  h1 {
+    margin-bottom: var(--space-s);
+    /* Tamaño fluido: crece con el ancho de pantalla entre 2rem y 3rem */
+    font-size: clamp(2rem, 6vw, 3rem);
+  }
+
+  .headline {
+    color: var(--color-accent);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+
+  .bio {
+    max-width: 40rem;
+    color: var(--color-muted);
+    font-size: 1.1rem;
+  }
+
+  /* En móvil y tablet el monograma no se muestra */
+  .monogram {
+    display: none;
+  }
+
+  @media (min-width: 48rem) {
+    .hero {
+      padding-block: var(--space-xl);
+    }
+  }
+
+  /* Escritorio: texto a la izquierda y monograma a la derecha, a todo el ancho.
+     Los tamaños crecen con la pantalla (clamp) para que no se vea pequeño en 1920 px o más. */
+  @media (min-width: 56.25rem) {
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: var(--space-xl);
+      padding-block: clamp(4rem, 7vw, 8rem);
+    }
+
+    h1 {
+      font-size: clamp(3rem, 4.5vw, 4.75rem);
+    }
+
+    .headline {
+      font-size: clamp(1.25rem, 1.6vw, 1.6rem);
+    }
+
+    .bio {
+      font-size: 1.25rem;
+    }
+
+    .monogram {
+      display: grid;
+      place-items: center;
+      width: clamp(16rem, 20vw, 22rem);
+      aspect-ratio: 1;
+      border-radius: 2rem;
+      background: var(--color-accent);
+      color: var(--color-bg);
+      font-size: clamp(6rem, 7.5vw, 8.5rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+  }
+</style>

@@ -44,9 +44,9 @@ export const en: Translations = {
         tasks: [
           'Web application development with Laravel and admin panel development with Filament.',
           'Website development with WordPress and Astro.',
-          'Database management.',
+          'PostgreSQL and MySQL database management, including Laravel migrations.',
         ],
-        technologies: ['Laravel', 'Filament', 'PHP', 'WordPress', 'Astro'],
+        technologies: ['Laravel', 'Filament', 'PHP', 'PostgreSQL', 'MySQL', 'WordPress', 'Astro'],
       },
       {
         role: 'Systems Maintenance',

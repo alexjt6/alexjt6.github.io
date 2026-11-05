@@ -69,9 +69,9 @@ export const es = {
         tasks: [
           'Desarrollo de aplicaciones web con Laravel y de paneles de administración con Filament.',
           'Desarrollo de sitios web con WordPress y Astro.',
-          'Gestión de bases de datos.',
+          'Gestión de bases de datos PostgreSQL y MySQL, incluidas migraciones con Laravel.',
         ],
-        technologies: ['Laravel', 'Filament', 'PHP', 'WordPress', 'Astro'],
+        technologies: ['Laravel', 'Filament', 'PHP', 'PostgreSQL', 'MySQL', 'WordPress', 'Astro'],
       },
       {
         role: 'Mantenimiento de Sistemas',

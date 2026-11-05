@@ -43,6 +43,10 @@ export const es = {
   hero: {
     headline: 'Estudiante de DAM · Desarrollador de software',
     bio: 'Actualmente en prácticas de desarrollo de software. Busco oportunidades para seguir aprendiendo y aportar en proyectos reales.',
+    // Botones del inicio. El del CV solo aparece si el PDF de este idioma está subido.
+    projects: 'Ver proyectos',
+    cv: 'Ver CV',
+    contact: 'Contactar',
   },
   projects: {
     empty: 'Próximamente: aquí añadiré mis proyectos.',

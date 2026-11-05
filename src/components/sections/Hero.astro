@@ -1,5 +1,5 @@
 ---
-// Inicio: nombre, titular y bio corta (los enlaces de contacto están en la sección Contacto).
+// Inicio: nombre, titular, bio corta y botones de acceso rápido (proyectos, CV y contacto).
 // En escritorio (≥ 900 px) se añade a la derecha un cuadro decorativo:
 // - Si existe src/assets/foto.(jpg|jpeg|png|webp|avif), se muestra esa foto.
 // - Si no, se muestra el monograma con las iniciales (AJT).
@@ -7,8 +7,10 @@
 import { Image } from 'astro:assets';
 import { getI18n } from '../../i18n';
 import { profile } from '../../data/profile';
+import { getCv } from '../../data/cv';
 
-const { t } = getI18n(Astro.currentLocale);
+const { lang, t } = getI18n(Astro.currentLocale);
+const cv = getCv(lang);
 
 // import.meta.glob busca archivos que encajen con el patrón al compilar.
 // Si no hay ninguno, devuelve un objeto vacío (no da error, a diferencia de un import normal).
@@ -29,6 +31,23 @@ const photoSize = photo ? Math.min(704, photo.width, photo.height) : 0;
     <h1>{profile.name}</h1>
     <p class="headline">{t.hero.headline}</p>
     <p class="bio">{t.hero.bio}</p>
+
+    {/* Accesos rápidos a lo que más se busca. "Ver CV" solo aparece si el PDF de este idioma está subido. */}
+    <ul class="actions">
+      <li><a class="button button-primary" href="#projects">{t.hero.projects}</a></li>
+      {
+        cv.available && (
+          <li>
+            {/* rel="noopener noreferrer" impide que la pestaña nueva controle esta página */}
+            <a class="button" href={cv.url} target="_blank" rel="noopener noreferrer">
+              {t.hero.cv}
+              <span class="visually-hidden">{` ${t.cv.newTab}`}</span>
+            </a>
+          </li>
+        )
+      }
+      <li><a class="button" href="#contact">{t.hero.contact}</a></li>
+    </ul>
   </div>
 
   {
@@ -66,6 +85,17 @@ const photoSize = photo ? Math.min(704, photo.width, photo.height) : 0;
     max-width: 40rem;
     color: var(--color-muted);
     font-size: 1.1rem;
+  }
+
+  /* Botones en fila; si no caben (móvil estrecho), pasan a la línea siguiente.
+     Los estilos de cada botón (.button) están en global.css */
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    margin: var(--space-l) 0 0;
+    padding: 0;
+    list-style: none;
   }
 
   /* En móvil y tablet ni el monograma ni la foto se muestran */

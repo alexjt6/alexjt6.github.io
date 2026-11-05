@@ -25,6 +25,9 @@ export const en: Translations = {
   hero: {
     headline: 'Multiplatform App Development (DAM) student · Software developer',
     bio: "Currently doing a software development internship. I'm looking for opportunities to keep learning and contribute to real projects.",
+    projects: 'View projects',
+    cv: 'View CV',
+    contact: 'Contact me',
   },
   projects: {
     empty: 'Coming soon: my projects will be added here.',

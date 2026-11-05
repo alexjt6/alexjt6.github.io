@@ -35,6 +35,7 @@ src/
     sections/         Hero, Projects, ProjectCard, Experience, Technologies, About, Cv, Contact
   i18n/               es.ts y en.ts (todos los textos) e index.ts (getI18n)
   data/profile.ts     Datos fijos (nombre, iniciales, email, enlaces, CV, tecnologías)
+  data/cv.ts          getCv(): ruta del CV de cada idioma y si el PDF está subido
   content/projects/   Un archivo .md por proyecto (la carpeta se crea con el primero)
   content.config.ts   Campos que debe tener cada proyecto
   styles/global.css   Colores, espaciados y estilos base
@@ -62,7 +63,7 @@ enlaces, CV y tecnologías por categoría (`technologies`).
 2. Guárdalo en `public/logos/`, p. ej. `public/logos/docker.svg`.
 3. En `src/data/profile.ts`, añade `{ name: 'Docker', logo: 'docker' }` en su categoría.
 
-El nombre (`name`) es el texto alternativo y el tooltip del logo.
+El nombre (`name`) se muestra debajo del logo.
 
 ### Bloques que se ocultan si están vacíos
 
@@ -119,9 +120,10 @@ Sube los PDF a `public/` con estos nombres exactos:
 | `public/cv-es.pdf` | Web en español (`/`) |
 | `public/cv-en.pdf` | Web en inglés (`/en/`) |
 
-No hay que tocar código: al compilar, `Cv.astro` comprueba si el archivo existe.
-Si existe, el botón se activa; si no, sale "Próximamente". Las rutas están en
-`cv` dentro de `src/data/profile.ts`. El botón abre el PDF en una pestaña nueva.
+No hay que tocar código: al compilar, `getCv()` (`src/data/cv.ts`) comprueba si el archivo
+existe. Si existe, se activan el botón de la sección CV y el de "Ver CV" del inicio; si no,
+la sección muestra "Próximamente" y el inicio no enseña ese botón. Las rutas están en
+`cv` dentro de `src/data/profile.ts`. Los botones abren el PDF en una pestaña nueva.
 
 **El PDF es público** (cualquiera lo descarga y Google lo indexa): sin teléfono ni
 dirección. Revísalo antes de subirlo. Si se sube algo sensible por error, borrarlo después

@@ -1,18 +1,14 @@
 ---
 // CV: un botón que abre en una pestaña nueva el PDF del idioma de la página
 // (web en español → cv-es.pdf, web en inglés → cv-en.pdf).
-// Al compilar se comprueba si el PDF existe en public/: si existe, el botón se activa;
+// getCv() comprueba al compilar si el PDF existe en public/: si existe, el botón se activa;
 // si no, sale deshabilitado ("Próximamente"). Así basta con subir el PDF.
-import { existsSync } from 'node:fs';
 import Section from '../Section.astro';
 import { getI18n } from '../../i18n';
-import { profile } from '../../data/profile';
+import { getCv } from '../../data/cv';
 
 const { lang, t } = getI18n(Astro.currentLocale);
-
-const url = profile.cv[lang];
-// El build se ejecuta desde la raíz del proyecto, por eso la ruta empieza por "public"
-const available = existsSync(`public${url}`);
+const { url, available } = getCv(lang);
 ---
 
 <Section id="cv" title={t.nav.cv}>

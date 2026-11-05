@@ -1,5 +1,5 @@
 ---
-// Tecnologías: logos agrupados por categoría.
+// Tecnologías: logos agrupados por categoría, cada uno con su nombre debajo.
 // Los datos están en src/data/profile.ts y los logos (Devicon, MIT) en public/logos/.
 import Section from '../Section.astro';
 import { getI18n } from '../../i18n';
@@ -17,19 +17,15 @@ const categories = ['languages', 'web', 'databases', 'frameworks', 'tools'] as c
       categories.map((category) => (
         <div>
           <h3>{t.technologies.categories[category]}</h3>
-          <ul class="logos">
+          <ul class="techs">
             {profile.technologies[category].map((tech) => (
-              <li class="logo">
-                {/* alt: nombre que lee el lector de pantalla (en una imagen equivale a aria-label). title: tooltip */}
-                <img
-                  src={`/logos/${tech.logo}.svg`}
-                  alt={tech.name}
-                  title={tech.name}
-                  width="36"
-                  height="36"
-                  loading="lazy"
-                  decoding="async"
-                />
+              <li class="tech">
+                {/* Logo decorativo (alt vacío): el nombre ya está escrito debajo,
+                    así el lector de pantalla no lo lee dos veces */}
+                <span class="logo">
+                  <img src={`/logos/${tech.logo}.svg`} alt="" width="36" height="36" loading="lazy" decoding="async" />
+                </span>
+                <span class="name">{tech.name}</span>
               </li>
             ))}
           </ul>
@@ -49,25 +45,49 @@ const categories = ['languages', 'web', 'databases', 'frameworks', 'tools'] as c
     margin-bottom: var(--space-s);
   }
 
-  .logos {
+  .techs {
+    /* Medidas: lado de la baldosa y ancho del hueco de cada tecnología.
+       El hueco es algo más ancho para que quepan nombres largos (PostgreSQL);
+       los de dos palabras (Android Studio) pasan a dos líneas. */
+    --tile: 3.5rem;
+    --slot: 4.25rem;
+
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-s);
-    margin: 0;
+    gap: var(--space-s) var(--space-xs); /* entre filas | entre columnas */
+    /* Margen izquierdo negativo de medio "sobrante" del hueco: así la primera baldosa
+       queda alineada con el título de la categoría */
+    margin: 0 0 0 calc((var(--tile) - var(--slot)) / 2);
     padding: 0;
     list-style: none;
   }
 
+  /* Cada tecnología: baldosa con el logo y su nombre debajo, centrados */
+  .tech {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    width: var(--slot);
+  }
+
   /* "Baldosa" de cada logo. En modo oscuro es clara: así los logos oscuros
-     (GitHub, Astro, MariaDB…) se ven igual de bien que en modo claro. */
+     (Astro, MariaDB…) se ven igual de bien que en modo claro. */
   .logo {
     display: grid;
     place-items: center;
-    width: 3.5rem;
-    height: 3.5rem;
+    width: var(--tile);
+    height: var(--tile);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     background: light-dark(#ffffff, #e6e8eb);
+  }
+
+  .name {
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    line-height: 1.2;
+    text-align: center;
   }
 
   /* Tablet: 2 columnas de categorías */
@@ -84,9 +104,9 @@ const categories = ['languages', 'web', 'databases', 'frameworks', 'tools'] as c
       grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
     }
 
-    .logo {
-      width: 4.25rem;
-      height: 4.25rem;
+    .techs {
+      --tile: 4.25rem;
+      --slot: 4.5rem;
     }
 
     .logo img {

@@ -1,5 +1,5 @@
 ---
-// Contacto: iconos con enlace directo a email, GitHub y LinkedIn. Sin formulario ni backend.
+// Contacto: email visible con un botón para copiarlo, y enlaces a GitHub y LinkedIn. Sin formulario ni backend.
 // Los SVG van dentro del HTML con fill/stroke="currentColor": toman el color del texto,
 // así se ven en modo claro y oscuro. Trazados de GitHub y LinkedIn: Devicon (MIT).
 import Section from '../Section.astro';
@@ -7,44 +7,207 @@ import { getI18n } from '../../i18n';
 import { profile } from '../../data/profile';
 
 const { t } = getI18n(Astro.currentLocale);
-const emailLabel = `${t.contact.email} (${profile.email})`;
 ---
 
 <Section id="contact" title={t.nav.contact}>
   <p>{t.contact.text}</p>
-  <ul class="contact-icons">
-    <li>
-      <a class="icon-link" href={`mailto:${profile.email}`} aria-label={emailLabel} title={emailLabel}>
+
+  {/* En escritorio, todo en una fila. Si no cabe (móvil), los iconos bajan a la siguiente línea. */}
+  <div class="contact-links">
+    {/* Email + botón "Copiar" en una misma caja. El email se ve escrito: así sirve
+        aunque quien visite la web no tenga una app de correo configurada. */}
+    <div class="email">
+      <a class="email-link" href={`mailto:${profile.email}`} title={t.contact.email}>
         {/* Sobre */}
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="3" y="5" width="18" height="14" rx="2"></rect>
           <path d="m3 7 9 6 9-6"></path>
         </svg>
+        <span>{profile.email}</span>
       </a>
-    </li>
-    <li>
-      <a class="icon-link" href={profile.github} aria-label={t.contact.github} title={t.contact.github}>
-        <svg viewBox="0 0 128 128" width="24" height="24" fill="currentColor" aria-hidden="true">
-          <path
-            fill-rule="evenodd"
-            d="M64 5.103c-33.347 0-60.388 27.035-60.388 60.388 0 26.682 17.303 49.317 41.297 57.303 3.017.56 4.125-1.31 4.125-2.905 0-1.44-.056-6.197-.082-11.243-16.8 3.653-20.345-7.125-20.345-7.125-2.747-6.98-6.705-8.836-6.705-8.836-5.48-3.748.413-3.67.413-3.67 6.063.425 9.257 6.223 9.257 6.223 5.386 9.23 14.127 6.562 17.573 5.02.542-3.903 2.107-6.568 3.834-8.076-13.413-1.525-27.514-6.704-27.514-29.843 0-6.593 2.36-11.98 6.223-16.21-.628-1.52-2.695-7.662.584-15.98 0 0 5.07-1.623 16.61 6.19C53.7 35 58.867 34.327 64 34.304c5.13.023 10.3.694 15.127 2.033 11.526-7.813 16.59-6.19 16.59-6.19 3.287 8.317 1.22 14.46.593 15.98 3.872 4.23 6.215 9.617 6.215 16.21 0 23.194-14.127 28.3-27.574 29.796 2.167 1.874 4.097 5.55 4.097 11.183 0 8.08-.07 14.583-.07 16.572 0 1.607 1.088 3.49 4.148 2.897 23.98-7.994 41.263-30.622 41.263-57.294C124.388 32.14 97.35 5.104 64 5.104z"
-          ></path>
+
+      {/*
+        Empieza oculto (hidden): sin JavaScript no funcionaría, así que no se muestra.
+        Los textos de cada estado van en atributos data-*, porque el <script> no puede leer `t`.
+        aria-label: nombre para lectores de pantalla ("Copiar el email"), más claro que solo "Copiar".
+      */}
+      <button
+        id="copy-email"
+        class="copy-button"
+        type="button"
+        aria-label={t.contact.copyLabel}
+        data-email={profile.email}
+        data-copied={t.contact.copied}
+        data-error={t.contact.copyError}
+        hidden
+      >
+        {/* Dos hojas superpuestas: se ve en el estado normal */}
+        <svg class="icon-copy" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="9" y="9" width="12" height="12" rx="2"></rect>
+          <path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4"></path>
         </svg>
-      </a>
-    </li>
-    <li>
-      <a class="icon-link" href={profile.linkedin} aria-label={t.contact.linkedin} title={t.contact.linkedin}>
-        <svg viewBox="0 0 128 128" width="24" height="24" fill="currentColor" aria-hidden="true">
-          <path
-            d="M116 3H12a8.91 8.91 0 00-9 8.8v104.42a8.91 8.91 0 009 8.78h104a8.93 8.93 0 009-8.81V11.77A8.93 8.93 0 00116 3zM39.17 107H21.06V48.73h18.11zm-9-66.21a10.5 10.5 0 1110.49-10.5 10.5 10.5 0 01-10.54 10.48zM107 107H88.89V78.65c0-6.75-.12-15.44-9.41-15.44s-10.87 7.36-10.87 15V107H50.53V48.73h17.36v8h.24c2.42-4.58 8.32-9.41 17.13-9.41C103.6 47.28 107 59.35 107 75z"
-          ></path>
+        {/* Check: se ve al copiar */}
+        <svg class="icon-check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m5 12 5 5L20 7"></path>
         </svg>
-      </a>
-    </li>
-  </ul>
+        <span class="copy-text">{t.contact.copy}</span>
+      </button>
+    </div>
+
+    <ul class="contact-icons">
+      <li>
+        <a class="icon-link" href={profile.github} aria-label={t.contact.github} title={t.contact.github}>
+          <svg viewBox="0 0 128 128" width="24" height="24" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M64 5.103c-33.347 0-60.388 27.035-60.388 60.388 0 26.682 17.303 49.317 41.297 57.303 3.017.56 4.125-1.31 4.125-2.905 0-1.44-.056-6.197-.082-11.243-16.8 3.653-20.345-7.125-20.345-7.125-2.747-6.98-6.705-8.836-6.705-8.836-5.48-3.748.413-3.67.413-3.67 6.063.425 9.257 6.223 9.257 6.223 5.386 9.23 14.127 6.562 17.573 5.02.542-3.903 2.107-6.568 3.834-8.076-13.413-1.525-27.514-6.704-27.514-29.843 0-6.593 2.36-11.98 6.223-16.21-.628-1.52-2.695-7.662.584-15.98 0 0 5.07-1.623 16.61 6.19C53.7 35 58.867 34.327 64 34.304c5.13.023 10.3.694 15.127 2.033 11.526-7.813 16.59-6.19 16.59-6.19 3.287 8.317 1.22 14.46.593 15.98 3.872 4.23 6.215 9.617 6.215 16.21 0 23.194-14.127 28.3-27.574 29.796 2.167 1.874 4.097 5.55 4.097 11.183 0 8.08-.07 14.583-.07 16.572 0 1.607 1.088 3.49 4.148 2.897 23.98-7.994 41.263-30.622 41.263-57.294C124.388 32.14 97.35 5.104 64 5.104z"
+            ></path>
+          </svg>
+        </a>
+      </li>
+      <li>
+        <a class="icon-link" href={profile.linkedin} aria-label={t.contact.linkedin} title={t.contact.linkedin}>
+          <svg viewBox="0 0 128 128" width="24" height="24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M116 3H12a8.91 8.91 0 00-9 8.8v104.42a8.91 8.91 0 009 8.78h104a8.93 8.93 0 009-8.81V11.77A8.93 8.93 0 00116 3zM39.17 107H21.06V48.73h18.11zm-9-66.21a10.5 10.5 0 1110.49-10.5 10.5 10.5 0 01-10.54 10.48zM107 107H88.89V78.65c0-6.75-.12-15.44-9.41-15.44s-10.87 7.36-10.87 15V107H50.53V48.73h17.36v8h.24c2.42-4.58 8.32-9.41 17.13-9.41C103.6 47.28 107 59.35 107 75z"
+            ></path>
+          </svg>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  {/* Zona para lectores de pantalla (role="status"): el script escribe aquí "Copiado" y lo leen en voz alta */}
+  <span id="copy-status" class="visually-hidden" role="status"></span>
 </Section>
 
+<script>
+  // Astro procesa este <script> (TypeScript) y lo carga una sola vez por página.
+  const button = document.querySelector<HTMLButtonElement>('#copy-email');
+  const label = document.querySelector<HTMLElement>('#copy-email .copy-text');
+  const status = document.querySelector<HTMLElement>('#copy-status');
+
+  // navigator.clipboard (API del portapapeles) solo existe en páginas seguras (https o localhost).
+  // Si no está, el botón sigue oculto y queda el enlace del email.
+  if (button && label && status && navigator.clipboard) {
+    const originalText = label.textContent;
+    let timer: number | undefined;
+
+    // Cambia el estado del botón: 'copied', 'error' o '' (normal).
+    // El aspecto de cada estado lo pone el CSS a partir de data-state.
+    const showState = (state: string, text: string | null) => {
+      button.dataset.state = state;
+      label.textContent = text;
+      status.textContent = state ? text : ''; // lo que leerá el lector de pantalla
+    };
+
+    button.hidden = false;
+
+    button.addEventListener('click', async () => {
+      try {
+        // writeText devuelve una promesa: con await esperamos a que termine (o falle)
+        await navigator.clipboard.writeText(button.dataset.email ?? '');
+        showState('copied', button.dataset.copied ?? '');
+      } catch {
+        showState('error', button.dataset.error ?? '');
+      }
+
+      // A los 2 segundos vuelve al estado normal. Si se pulsa otra vez antes, la cuenta empieza de nuevo.
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => showState('', originalText), 2000);
+    });
+  }
+</script>
+
 <style>
+  .contact-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+  }
+
+  /* Caja del email: enlace + botón con un borde común, como un campo de formulario.
+     Misma altura (48 px) que los iconos para que la fila quede alineada. */
+  .email {
+    display: flex;
+    max-width: 100%;
+    min-height: 3rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+
+  .email-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    padding-inline: var(--space-m);
+    /* Esquinas izquierdas redondeadas: así el contorno de foco sigue la forma de la caja */
+    border-radius: var(--radius) 0 0 var(--radius);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .email-link:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+
+  .copy-button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding-inline: 0.75rem;
+    border: none;
+    border-left: 1px solid var(--color-border); /* separador entre email y botón */
+    border-radius: 0 var(--radius) var(--radius) 0;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .copy-button:hover {
+    color: var(--color-accent);
+  }
+
+  /* display: flex anula el "hidden" del navegador: hay que volver a ocultarlo a mano */
+  .copy-button[hidden] {
+    display: none;
+  }
+
+  /* Estado "copiado": color de acento y el check en lugar del icono de copiar */
+  .copy-button[data-state='copied'] {
+    color: var(--color-accent);
+  }
+
+  .icon-check,
+  .copy-button[data-state='copied'] .icon-copy {
+    display: none;
+  }
+
+  .copy-button[data-state='copied'] .icon-check {
+    display: block;
+  }
+
+  /* Los iconos no se encogen aunque falte espacio (si no, en móviles estrechos desaparecen) */
+  .email svg {
+    flex-shrink: 0;
+  }
+
+  /* Móviles muy estrechos (< 360 px): el botón muestra solo el icono, para que la caja quepa.
+     Desde 360 px se ve también el texto. Los lectores de pantalla usan el aria-label en ambos casos. */
+  .copy-text {
+    display: none;
+  }
+
+  @media (min-width: 22.5rem) {
+    .copy-text {
+      display: inline;
+    }
+  }
+
   .contact-icons {
     display: flex;
     gap: var(--space-s);

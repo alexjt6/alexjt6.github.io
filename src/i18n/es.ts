@@ -66,8 +66,12 @@ export const es = {
         company: 'Tech Impulse',
         dates: 'septiembre 2026 – actualidad',
         logo: 'tech-impulse.webp',
-        tasks: [],
-        technologies: [],
+        tasks: [
+          'Desarrollo de aplicaciones web con Laravel y de paneles de administración con Filament.',
+          'Desarrollo de sitios web con WordPress y Astro.',
+          'Gestión de bases de datos.',
+        ],
+        technologies: ['Laravel', 'Filament', 'PHP', 'WordPress', 'Astro'],
       },
       {
         role: 'Mantenimiento de Sistemas',
@@ -147,10 +151,15 @@ export const es = {
   },
   contact: {
     text: '¿Tienes una oferta de empleo, o quieres comentarme algo? Escríbeme.',
-    // Nombre accesible (aria-label y title) de cada icono
+    // Tooltip (title) del email y nombre accesible (aria-label y title) de los iconos
     email: 'Enviar un email',
     github: 'Mi perfil de GitHub',
     linkedin: 'Mi perfil de LinkedIn',
+    // Botón para copiar el email: texto visible en cada estado y nombre para lectores de pantalla
+    copy: 'Copiar',
+    copied: 'Copiado',
+    copyError: 'Error',
+    copyLabel: 'Copiar el email',
   },
   notFound: {
     title: 'Página no encontrada',

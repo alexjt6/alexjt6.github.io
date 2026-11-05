@@ -149,6 +149,9 @@ Están como variables al principio de `src/styles/global.css`.
   `getI18n(Astro.currentLocale)`.
 - **Tema claro/oscuro:** por defecto sigue al sistema. El botón guarda la elección en
   `localStorage` y un pequeño script en el `<head>` la aplica antes de pintar la página.
+- **Copiar email (Contacto):** el botón usa la API del portapapeles (`navigator.clipboard`).
+  Empieza oculto (`hidden`) y el script solo lo muestra si el navegador tiene esa API; sin
+  JavaScript queda el enlace `mailto:`. Los textos de cada estado le llegan en atributos `data-*`.
 - **Proyectos:** son una *content collection*. Astro lee los `.md` y comprueba sus campos
   con el esquema de `src/content.config.ts`.
 - **SEO:** título y descripción por idioma, `canonical`, `hreflang`, Open Graph y Twitter (con imagen) y `robots.txt`.

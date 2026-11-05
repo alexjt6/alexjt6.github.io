@@ -41,8 +41,12 @@ export const en: Translations = {
         company: 'Tech Impulse',
         dates: 'September 2026 – present',
         logo: 'tech-impulse.webp',
-        tasks: [],
-        technologies: [],
+        tasks: [
+          'Web application development with Laravel and admin panel development with Filament.',
+          'Website development with WordPress and Astro.',
+          'Database management.',
+        ],
+        technologies: ['Laravel', 'Filament', 'PHP', 'WordPress', 'Astro'],
       },
       {
         role: 'Systems Maintenance',
@@ -118,6 +122,10 @@ export const en: Translations = {
     email: 'Send an email',
     github: 'My GitHub profile',
     linkedin: 'My LinkedIn profile',
+    copy: 'Copy',
+    copied: 'Copied',
+    copyError: 'Error',
+    copyLabel: 'Copy email address',
   },
   notFound: {
     title: 'Page not found',

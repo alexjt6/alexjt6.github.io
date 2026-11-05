@@ -68,8 +68,6 @@ export const profile: Profile = {
     ],
     tools: [
       { name: 'Git', logo: 'git' },
-      { name: 'GitHub', logo: 'github' },
-      { name: 'GitLab', logo: 'gitlab' },
       { name: 'VS Code', logo: 'vscode' },
       { name: 'JetBrains', logo: 'jetbrains' },
       { name: 'Eclipse', logo: 'eclipse' },

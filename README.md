@@ -138,7 +138,8 @@ Para poner una foto en su lugar, guárdala como `src/assets/foto.jpg` (también 
 No hay que tocar código: al compilar, `Hero.astro` busca ese archivo. Si existe, muestra la
 foto; si no, las iniciales. Para cambiarla, sustituye el archivo; para volver a AJT, bórralo.
 
-- Astro la recorta a cuadrado (por el centro), la reduce a 704×704 y la convierte a webp.
+- Astro la recorta a cuadrado (por el centro), la reduce a 704×704 como máximo y la
+  convierte a webp. Si es más pequeña no la amplía: el cuadrado mide lo que su lado corto.
   Mejor que sea cuadrada y de al menos 704×704 para que se vea nítida.
 - Las fotos `.heic` del iPhone no valen: expórtala antes como JPG.
 - Como el monograma, en móvil y tablet no se muestra.

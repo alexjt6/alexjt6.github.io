@@ -18,6 +18,10 @@ const photos = import.meta.glob<{ default: ImageMetadata }>('../../assets/foto.{
 });
 // Nos quedamos con la primera que encuentre (undefined si no hay ninguna)
 const photo = Object.values(photos)[0]?.default;
+
+// Lado del cuadrado en px: 704 (el doble del tamaño máximo en pantalla, 352 px, para que se
+// vea nítida en pantallas retina) o menos si la foto es más pequeña, porque Astro no amplía imágenes.
+const photoSize = photo ? Math.min(704, photo.width, photo.height) : 0;
 ---
 
 <div class="hero container">
@@ -30,9 +34,8 @@ const photo = Object.values(photos)[0]?.default;
   {
     photo ? (
       // alt="" porque es decorativa: el nombre ya está en el <h1> de al lado.
-      // <Image> la recorta a cuadrado (fit cover), la reduce y la convierte a webp.
-      // 704 px = el doble del tamaño máximo en pantalla (352 px), para que se vea nítida en pantallas retina.
-      <Image class="photo" src={photo} alt="" width={704} height={704} fit="cover" />
+      // <Image> la recorta a cuadrado por el centro (fit cover), la reduce y la convierte a webp.
+      <Image class="photo" src={photo} alt="" width={photoSize} height={photoSize} fit="cover" />
     ) : (
       // Decorativo: aria-hidden para que el lector de pantalla no lea "AJT"
       <div class="monogram" aria-hidden="true">

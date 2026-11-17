@@ -1,15 +1,19 @@
 ---
 // Proyectos: lee la colección "projects" (src/content/projects/) y muestra una tarjeta por proyecto.
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import Section from '../Section.astro';
 import ProjectCard from './ProjectCard.astro';
 import { getI18n } from '../../i18n';
 
-const { t } = getI18n(Astro.currentLocale);
+const { lang, t } = getI18n(Astro.currentLocale);
+
+// El título puede ser un texto o uno por idioma ({ es, en }): esto devuelve el que toca
+const titleOf = (project: CollectionEntry<'projects'>) =>
+  typeof project.data.title === 'string' ? project.data.title : project.data.title[lang];
 
 // Orden: primero por `order` y, si empatan, por título
 const projects = (await getCollection('projects')).sort(
-  (a, b) => a.data.order - b.data.order || a.data.title.localeCompare(b.data.title),
+  (a, b) => a.data.order - b.data.order || titleOf(a).localeCompare(titleOf(b)),
 );
 ---
 

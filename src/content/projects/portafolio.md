@@ -5,5 +5,5 @@ description:
   en: This very website, built with Astro, TypeScript and hand-written CSS. Two languages with typed translations, light and dark mode, accessible design, Content Security Policy and automatic deployment to GitHub Pages with GitHub Actions.
 technologies: [Astro, TypeScript, CSS, GitHub Actions]
 repo: https://github.com/alexjt6/alexjt6.github.io
-order: 2
+order: 3
 ---

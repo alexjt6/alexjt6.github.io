@@ -36,6 +36,7 @@ export const en: Translations = {
     imageAlt: 'Screenshot of',
     code: 'Code',
     demo: 'Demo',
+    inProgress: 'In progress',
   },
   experience: {
     technologies: 'Technologies',
@@ -67,6 +68,8 @@ export const en: Translations = {
     ],
   },
   technologies: {
+    all: 'All',
+    filterLabel: 'Filter technologies by category',
     categories: {
       languages: 'Programming languages',
       web: 'Web',

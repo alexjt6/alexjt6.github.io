@@ -11,12 +11,20 @@ const projects = defineCollection({
   // y permite a Astro optimizarla (tamaño, formato webp…).
   schema: ({ image }) =>
     z.object({
-      title: z.string(),
+      // Título: un nombre propio (igual en los dos idiomas) o uno por idioma ({ es, en })
+      title: z.union([
+        z.string(),
+        z.object({
+          es: z.string(),
+          en: z.string(),
+        }),
+      ]),
       description: z.object({
         es: z.string(),
         en: z.string(),
       }),
-      technologies: z.array(z.string()),
+      technologies: z.array(z.string()).default([]), // opcional: sin tecnologías, no se muestran etiquetas
+      inProgress: z.boolean().default(false), // true = etiqueta "En desarrollo" en la tarjeta
       image: image().optional(), // captura, ruta relativa al .md (p. ej. ./mi-proyecto.png)
       // Enlaces: solo http(s). Así un "javascript:..." no pasa la validación.
       repo: z.url({ protocol: /^https?$/ }).optional(), // enlace al código (opcional)

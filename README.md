@@ -65,8 +65,19 @@ si no hay foto), email, enlaces, CV y tecnologías por categoría (`technologies
 2. Guárdalo en `public/logos/`, p. ej. `public/logos/docker.svg`.
 3. En `src/data/profile.ts`, añade `{ name: 'Docker', logo: 'docker' }` en su categoría.
 
-El nombre (`name`) se muestra debajo del logo. Los proyectos sin captura también usan estos
+El nombre (`name`) se muestra al lado del logo. Todo lo demás se actualiza solo: la cinta en
+movimiento, el número de cada filtro y la tarjeta. Los proyectos sin captura también usan estos
 logos: su tarjeta muestra el de la primera tecnología de su lista que tenga logo.
+
+La sección Tecnologías (`Technologies.astro`) tiene tres partes:
+
+- **Cinta en movimiento:** dos filas con los nombres que se desplazan en sentidos opuestos y se
+  paran al pasar el ratón. Es decorativa: con "reducir movimiento" no se muestra.
+- **Filtros por categoría** (Todas, Lenguajes, Web…): al cambiar de filtro, las tarjetas se
+  recolocan con una animación (View Transitions API). Sin JavaScript no se muestran los filtros
+  y se ven todas las tecnologías.
+- **Rejilla de tarjetas:** aparecen una tras otra al llegar con el scroll y, con ratón, un brillo
+  de color sigue al puntero e ilumina también los bordes de las tarjetas cercanas.
 
 ### Bloques que se ocultan si están vacíos
 
@@ -99,12 +110,22 @@ y `softSkills`.
    description:
      es: Descripción corta en español (1–2 frases).
      en: Short description in English (1–2 sentences).
-   technologies: [Java, MySQL]
+   technologies: [Java, MySQL] # opcional: si no se pone, la tarjeta sale sin etiquetas
    image: ./gestor-tareas.png # opcional: captura en la misma carpeta (mejor 16:9)
    repo: https://github.com/alexjt6/gestor-tareas # opcional (el repo debe ser público)
    demo: https://ejemplo.com # opcional
+   inProgress: true # opcional: muestra la etiqueta "En desarrollo"
    order: 1 # opcional: los números más bajos salen primero
    ---
+   ```
+
+   Si el título no es un nombre propio y hay que traducirlo, se pone uno por idioma
+   (ver `gestor-equipos.md`):
+
+   ```yaml
+   title:
+     es: Gestor de equipos deportivos
+     en: Sports team manager
    ```
 
    Astro optimiza la captura sola. **No enlaces repos privados**: un visitante
@@ -171,7 +192,7 @@ Están como variables al principio de `src/styles/global.css`.
 
 ### Animaciones
 
-Todas son de CSS salvo dos pequeños scripts, y **se desactivan si el sistema tiene activado
+Casi todas son de CSS (con algún script pequeño) y **se desactivan si el sistema tiene activado
 "reducir movimiento"** (Windows: Configuración → Accesibilidad → Efectos visuales → Efectos de animación).
 
 | Animación | Dónde |
@@ -180,6 +201,8 @@ Todas son de CSS salvo dos pequeños scripts, y **se desactivan si el sistema ti
 | Aparición al hacer scroll | Cualquier elemento con el atributo `data-reveal`. Script en `BaseLayout.astro`, estilos al final de `global.css` |
 | Cambio de tema con un círculo que crece desde el botón | `ThemeToggle.astro` (View Transitions API; sin ella, cambio directo) |
 | Barra de progreso de lectura bajo la cabecera | `Header.astro` (solo CSS, `animation-timeline: scroll()`; donde no hay soporte, no se muestra) |
+| Tecnologías: cinta en movimiento, filtros animados (View Transitions API), tarjetas que aparecen una tras otra y brillo que sigue al ratón | `Technologies.astro` |
+| Punto que late en la etiqueta "En desarrollo" de los proyectos | `ProjectCard.astro` |
 | Efectos al pasar el ratón (botones, tarjetas, logos) | En el `<style>` de cada componente |
 
 Para que otro elemento aparezca al hacer scroll, basta con añadirle `data-reveal`:

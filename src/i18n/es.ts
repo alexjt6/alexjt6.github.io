@@ -56,6 +56,8 @@ export const es = {
     imageAlt: 'Captura de',
     code: 'Código',
     demo: 'Demo',
+    // Etiqueta de los proyectos con `inProgress: true`
+    inProgress: 'En desarrollo',
   },
   experience: {
     technologies: 'Tecnologías',
@@ -94,6 +96,9 @@ export const es = {
     ] as Job[],
   },
   technologies: {
+    // Botón de filtro que muestra todas las tecnologías y nombre del grupo de filtros (lectores de pantalla)
+    all: 'Todas',
+    filterLabel: 'Filtrar tecnologías por categoría',
     // Nombre de cada categoría (las tecnologías y sus logos están en src/data/profile.ts)
     categories: {
       languages: 'Lenguajes',

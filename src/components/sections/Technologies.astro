@@ -1,7 +1,10 @@
 ---
-// Tecnologías: logos agrupados por categoría, cada uno con su nombre debajo.
+// Tecnologías, en tres partes:
+//   1. Cinta de nombres en movimiento (decorativa): dos filas que se desplazan en sentidos opuestos.
+//   2. Filtros por categoría (Todas, Lenguajes, Web…): botones que muestran solo esa categoría.
+//   3. Rejilla de tarjetas (logo + nombre) con un brillo que sigue al ratón.
 // Los datos están en src/data/profile.ts y los logos (Devicon, MIT) en public/logos/.
-// Cada categoría aparece con un fundido al llegar con el scroll (data-reveal, ver BaseLayout.astro).
+// Sin JavaScript se ve igual, pero sin filtros (se muestran todas) ni brillo.
 import Section from '../Section.astro';
 import { getI18n } from '../../i18n';
 import { profile } from '../../data/profile';
@@ -10,23 +13,31 @@ const { t } = getI18n(Astro.currentLocale);
 
 // Orden de las categorías. `as const` hace que TypeScript sepa que solo son estas claves.
 const categories = ['languages', 'web', 'databases', 'frameworks', 'tools'] as const;
+
+// Todas las tecnologías en una sola lista, cada una con su categoría (para filtrar)
+const techs = categories.flatMap((category) => profile.technologies[category].map((tech) => ({ ...tech, category })));
+
+// Filas de la cinta: la segunda va en orden inverso para que no coincidan los nombres
+const marqueeRows = [techs, [...techs].reverse()];
 ---
 
 <Section id="technologies" title={t.nav.technologies}>
-  <div class="categories">
+  {/*
+    1. Cinta en movimiento. Es decorativa (aria-hidden): la información está en la rejilla.
+    Cada fila lleva la lista DOS veces seguidas y se desplaza la mitad de su ancho (-50 %):
+    al terminar, la segunda copia está justo donde empezó la primera y el salto no se nota.
+  */}
+  <div class="marquee" aria-hidden="true" data-reveal>
     {
-      categories.map((category) => (
-        <div data-reveal>
-          <h3>{t.technologies.categories[category]}</h3>
-          <ul class="techs">
-            {profile.technologies[category].map((tech) => (
-              <li class="tech">
-                {/* Logo decorativo (alt vacío): el nombre ya está escrito debajo,
-                    así el lector de pantalla no lo lee dos veces */}
-                <span class="logo">
-                  <img src={`/logos/${tech.logo}.svg`} alt="" width="36" height="36" loading="lazy" decoding="async" />
+      marqueeRows.map((row) => (
+        <div class="marquee-row">
+          <ul class="marquee-track">
+            {[...row, ...row].map((tech) => (
+              <li class="marquee-item">
+                <span class="marquee-logo">
+                  <img src={`/logos/${tech.logo}.svg`} alt="" width="24" height="24" loading="lazy" decoding="async" />
                 </span>
-                <span class="name">{tech.name}</span>
+                {tech.name}
               </li>
             ))}
           </ul>
@@ -34,115 +45,509 @@ const categories = ['languages', 'web', 'databases', 'frameworks', 'tools'] as c
       ))
     }
   </div>
+
+  {/*
+    2. Filtros. Empiezan ocultos (hidden): sin JavaScript no funcionarían, así que no se muestran.
+    aria-pressed="true" marca el filtro activo (patrón de botón conmutador).
+  */}
+  <div class="filters" role="group" aria-label={t.technologies.filterLabel} hidden>
+    <button type="button" class="filter" data-filter="all" aria-pressed="true">
+      {t.technologies.all}
+      <span class="count">{techs.length}</span>
+    </button>
+    {
+      categories.map((category) => (
+        <button type="button" class="filter" data-filter={category} aria-pressed="false">
+          {t.technologies.categories[category]}
+          <span class="count">{profile.technologies[category].length}</span>
+        </button>
+      ))
+    }
+  </div>
+
+  {/* 3. Rejilla. Al llegar con el scroll, las tarjetas aparecen una tras otra (ver estilos) */}
+  <ul class="grid" data-reveal>
+    {
+      techs.map((tech) => (
+        <li class="card" data-category={tech.category}>
+          {/* Logo decorativo (alt vacío): el nombre ya está escrito al lado,
+              así el lector de pantalla no lo lee dos veces */}
+          <span class="logo">
+            <img src={`/logos/${tech.logo}.svg`} alt="" width="32" height="32" loading="lazy" decoding="async" />
+          </span>
+          <span class="name">{tech.name}</span>
+        </li>
+      ))
+    }
+  </ul>
 </Section>
 
+<script>
+  // Filtros y brillo que sigue al ratón. Astro procesa este <script> (TypeScript).
+  const section = document.querySelector<HTMLElement>('#technologies');
+  const filters = section?.querySelector<HTMLElement>('.filters');
+  const grid = section?.querySelector<HTMLElement>('.grid');
+
+  if (section && filters && grid) {
+    const buttons = [...filters.querySelectorAll<HTMLButtonElement>('.filter')];
+    const cards = [...grid.querySelectorAll<HTMLElement>('.card')];
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Posición de cada tarjeta (0, 1, 2…): la usa el CSS para que aparezcan una tras otra.
+    // Se pone desde JavaScript porque la CSP no permite atributos style="" en el HTML.
+    cards.forEach((card, index) => card.style.setProperty('--i', String(index)));
+
+    // --- Filtros ---------------------------------------------------------------
+    filters.hidden = false;
+
+    // Marca el botón activo y oculta (hidden) las tarjetas de otras categorías
+    function applyFilter(filter: string) {
+      for (const button of buttons) {
+        button.setAttribute('aria-pressed', String(button.dataset.filter === filter));
+      }
+      for (const card of cards) {
+        card.hidden = filter !== 'all' && card.dataset.category !== filter;
+      }
+    }
+
+    for (const button of buttons) {
+      button.addEventListener('click', () => {
+        const filter = button.dataset.filter ?? 'all';
+        // A partir de ahora las tarjetas no repiten la animación de aparición
+        // (se repetiría cada vez que una tarjeta oculta vuelve a mostrarse)
+        grid.classList.add('is-filtered');
+
+        // Sin View Transitions (navegadores antiguos) o con "reducir movimiento": cambio directo
+        if (!('startViewTransition' in document) || reduceMotion) {
+          applyFilter(filter);
+          return;
+        }
+
+        // View Transitions API (como el cambio de tema): el navegador "fotografía" cada tarjeta
+        // antes y después del cambio y anima la diferencia: las que se quedan se deslizan a su
+        // nuevo sitio y las que aparecen o desaparecen se funden. Para eso, cada tarjeta necesita
+        // un nombre único. Se le quita al terminar, para no interferir con el cambio de tema.
+        cards.forEach((card, index) => (card.style.viewTransitionName = `tech-${index}`));
+        const transition = document.startViewTransition(() => applyFilter(filter));
+        transition.finished.finally(() => {
+          cards.forEach((card) => (card.style.viewTransitionName = ''));
+        });
+      });
+    }
+
+    // --- Brillo que sigue al ratón ------------------------------------------------
+    // Solo con ratón (en móvil no hay puntero que seguir). Cada tarjeta recibe la posición
+    // del ratón relativa a ella (--x, --y) y el CSS pinta ahí un degradado circular.
+    // Así también se iluminan los bordes de las tarjetas vecinas cuando el ratón está cerca.
+    if (window.matchMedia('(hover: hover)').matches) {
+      grid.addEventListener('pointermove', (event) => {
+        for (const card of cards) {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--x', `${event.clientX - rect.left}px`);
+          card.style.setProperty('--y', `${event.clientY - rect.top}px`);
+        }
+      });
+    }
+  }
+</script>
+
 <style>
-  .categories {
+  /* --- 1. Cinta en movimiento -------------------------------------------------- */
+  .marquee {
     display: grid;
-    gap: var(--space-l);
+    gap: 0.5rem;
+    margin-bottom: var(--space-l);
+    overflow: hidden; /* lo que sale de la cinta no se ve ni crea scroll horizontal */
+    /* Los extremos se desvanecen (la máscara deja ver solo donde es opaca) */
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
   }
 
-  /* Nombre de la categoría */
-  h3 {
-    margin-bottom: 0.75rem;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .techs {
-    /* Medidas: lado de la baldosa y ancho del hueco de cada tecnología.
-       El hueco es algo más ancho para que quepan nombres largos (PostgreSQL);
-       los de dos palabras (Android Studio) pasan a dos líneas. */
-    --tile: 3.5rem;
-    --slot: 4.25rem;
-
+  .marquee-track {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-s) var(--space-xs); /* entre filas | entre columnas */
-    /* Margen izquierdo negativo de medio "sobrante" del hueco: así la primera baldosa
-       queda alineada con el título de la categoría */
-    margin: 0 0 0 calc((var(--tile) - var(--slot)) / 2);
+    width: max-content; /* tan ancha como su contenido (las dos copias) */
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    animation: marquee 60s linear infinite;
+  }
+
+  /* La segunda fila va en sentido contrario */
+  .marquee-row:nth-child(2) .marquee-track {
+    animation-direction: reverse;
+  }
+
+  /* Al pasar el ratón, la cinta se detiene (y se puede leer con calma) */
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee {
+    to {
+      translate: -50% 0;
+    }
+  }
+
+  /* Cada nombre. Se separa con margin (no con gap) para que las dos copias midan
+     exactamente lo mismo y el -50 % encaje sin saltos. */
+  .marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-inline-end: 2rem;
+    color: var(--color-muted);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    transition: color 0.3s;
+  }
+
+  /* Separador entre nombres: un rombo pequeño con el degradado de la web */
+  .marquee-item::after {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-inline-start: 1.25rem;
+    rotate: 45deg;
+    background: var(--gradient-text);
+  }
+
+  /* Segunda fila: solo el contorno de las letras, sin logos (más ligera) */
+  .marquee-row:nth-child(2) .marquee-item {
+    color: transparent;
+    -webkit-text-stroke: 1px var(--color-muted);
+  }
+
+  .marquee-row:nth-child(2) .marquee-logo {
+    display: none;
+  }
+
+  /* El nombre que está bajo el ratón se colorea */
+  .marquee-item:hover {
+    color: var(--color-accent);
+  }
+
+  .marquee-row:nth-child(2) .marquee-item:hover {
+    -webkit-text-stroke-color: var(--color-accent);
+  }
+
+  /* Baldosa clara del logo (también en modo oscuro, para que los logos oscuros se vean) */
+  .marquee-logo {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.625rem;
+    background: light-dark(#ffffff, #e6e8eb);
+  }
+
+  /* Con "reducir movimiento", la cinta no aporta nada (es decorativa): se oculta */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      display: none;
+    }
+  }
+
+  /* Modo de alto contraste de Windows: el texto con solo contorno se ve mal */
+  @media (forced-colors: active) {
+    .marquee {
+      display: none;
+    }
+  }
+
+  /* --- 2. Filtros ---------------------------------------------------------------- */
+  /* Móvil: todos en una fila que se desliza con el dedo (como los filtros de muchas apps).
+     Los márgenes negativos la estiran hasta los bordes de la pantalla y el padding
+     devuelve el primer botón a su sitio. El padding vertical deja ver la sombra del activo. */
+  .filters {
+    display: flex;
+    gap: var(--space-s);
+    margin: -0.5rem calc(-1 * var(--container-padding)) 0.75rem;
+    padding: 0.5rem var(--container-padding) 0.75rem;
+    overflow-x: auto;
+    scrollbar-width: none; /* sin barra de scroll visible (Firefox, Chrome) */
+  }
+
+  .filters::-webkit-scrollbar {
+    display: none; /* sin barra de scroll visible (Safari) */
+  }
+
+  /* Tablet y escritorio: caben, así que pasan a varias líneas si hace falta */
+  @media (min-width: 48rem) {
+    .filters {
+      flex-wrap: wrap;
+      margin: 0 0 1.25rem;
+      padding: 0;
+      overflow: visible;
+    }
+  }
+
+  .filters[hidden] {
+    display: none;
+  }
+
+  .filter {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-s);
+    min-height: 2.5rem;
+    padding: 0.375rem 0.5rem 0.375rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-muted);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap; /* "Bases de datos" no se parte en dos líneas */
+    flex-shrink: 0; /* en la fila deslizable del móvil, los botones no se estrechan */
+    cursor: pointer;
+    transition:
+      color 0.25s,
+      border-color 0.25s,
+      background-color 0.25s,
+      box-shadow 0.25s,
+      translate 0.25s var(--ease-out);
+  }
+
+  .filter:hover {
+    border-color: var(--color-accent);
+    color: var(--color-text);
+  }
+
+  .filter:active {
+    translate: 0 1px;
+  }
+
+  /* Filtro activo: degradado de los botones principales y texto blanco */
+  .filter[aria-pressed='true'] {
+    border-color: transparent;
+    background: var(--gradient-button);
+    color: #ffffff;
+    box-shadow: 0 8px 20px -10px rgb(79 70 229 / 0.7);
+  }
+
+  /* Número de tecnologías de cada categoría */
+  .count {
+    min-width: 1.5rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 999px;
+    background: var(--color-surface-2);
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    text-align: center;
+    transition:
+      background-color 0.25s,
+      color 0.25s;
+  }
+
+  .filter[aria-pressed='true'] .count {
+    background: rgb(255 255 255 / 0.2);
+    color: #ffffff;
+  }
+
+  /* --- 3. Rejilla de tarjetas ------------------------------------------------------ */
+  /* Tantas columnas como quepan (mín. 9.5rem): 2 en móvil, 5-8 en escritorio */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(9.5rem, 100%), 1fr));
+    gap: 0.5rem;
+    margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  /* Cada tecnología: baldosa con el logo y su nombre debajo, centrados */
-  .tech {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.375rem;
-    width: var(--slot);
+  /* Entrada: la rejilla no se mueve, pero sus tarjetas aparecen una tras otra.
+     .reveal-in la pone el script de BaseLayout.astro y --i (posición de la tarjeta),
+     el script de este componente: cada una espera 40 ms más que la anterior. */
+  .grid.reveal-in {
+    animation: none;
   }
 
-  /* "Baldosa" de cada logo. En modo oscuro es clara: así los logos oscuros
-     (Astro, MariaDB…) se ven igual de bien que en modo claro. */
-  .logo {
-    display: grid;
-    place-items: center;
-    width: var(--tile);
-    height: var(--tile);
+  .grid.reveal-in .card {
+    animation: card-in 0.6s var(--ease-out) backwards;
+    animation-delay: calc(var(--i, 0) * 40ms);
+  }
+
+  /* Después de usar un filtro, sin animación de entrada (ver el script) */
+  .grid.is-filtered .card {
+    animation: none;
+  }
+
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      translate: 0 1rem;
+      scale: 0.92;
+    }
+  }
+
+  .card {
+    position: relative; /* referencia para los brillos (::before y ::after) */
+    isolation: isolate; /* el brillo de fondo (z-index: -1) queda dentro de la tarjeta */
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.625rem;
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
-    background: light-dark(#ffffff, #e6e8eb);
+    background: var(--color-surface);
     box-shadow: var(--shadow-card);
+    /* Las animaciones de los filtros (View Transitions) se ajustan con esta clase, más abajo */
+    view-transition-class: tech-card;
     transition:
       translate 0.3s var(--ease-out),
-      border-color 0.3s,
       box-shadow 0.3s;
   }
 
+  /* hidden lo pone el filtro. Hace falta porque display: flex anularía el hidden del navegador */
+  .card[hidden] {
+    display: none;
+  }
+
+  /* Brillo de fondo: un círculo suave de color centrado en el ratón (--x, --y) */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(12rem circle at var(--x, 50%) var(--y, 50%), var(--color-accent-soft), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  /* Brillo del borde: el mismo círculo, pero más intenso y recortado a un anillo de 1 px
+     (misma técnica de máscara que el borde con degradado de ProjectCard.astro) */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    padding: 1px;
+    border-radius: inherit;
+    background: radial-gradient(9rem circle at var(--x, 50%) var(--y, 50%), var(--color-accent), transparent 70%);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  /* Baldosa del logo. Clara también en modo oscuro, para que los logos oscuros
+     (Astro, MariaDB…) se vean igual de bien que en modo claro. */
+  .logo {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    background: light-dark(var(--color-surface-2), #e6e8eb);
+    transition:
+      rotate 0.4s var(--ease-out),
+      scale 0.4s var(--ease-out);
+  }
+
   .logo img {
-    transition: scale 0.3s var(--ease-out);
+    width: 1.5rem;
+    height: 1.5rem;
   }
 
   .name {
-    color: var(--color-muted);
-    font-size: 0.75rem;
-    line-height: 1.2;
-    text-align: center;
-    transition: color 0.3s;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25;
   }
 
-  /* Solo con ratón: la baldosa sube, brilla y el logo crece un poco */
+  /* Solo con ratón: brillos visibles mientras el ratón está sobre la rejilla, y la tarjeta
+     de debajo sube un poco con el logo girado (en móvil se quedaría "levantada" tras tocarla) */
   @media (hover: hover) {
-    .tech:hover .logo {
-      translate: 0 -4px;
-      border-color: var(--color-accent);
+    .grid:hover .card::before,
+    .grid:hover .card::after {
+      opacity: 1;
+    }
+
+    .card:hover {
+      translate: 0 -3px;
       box-shadow: var(--shadow-hover);
     }
 
-    .tech:hover .logo img {
+    .card:hover .logo {
+      rotate: -8deg;
       scale: 1.1;
     }
-
-    .tech:hover .name {
-      color: var(--color-text);
-    }
   }
 
-  /* Tablet: 2 columnas de categorías */
-  @media (min-width: 48rem) {
-    .categories {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-
-  /* Escritorio: las 5 categorías en una fila si caben (auto-fit, mín. 12rem cada una)
-     y logos algo más grandes */
+  /* Escritorio: cinta más grande y tarjetas algo más anchas */
   @media (min-width: 56.25rem) {
-    .categories {
-      grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    .marquee {
+      gap: 0.75rem;
     }
 
-    .techs {
-      --tile: 4.25rem;
-      --slot: 4.5rem;
+    .marquee-item {
+      margin-inline-end: 2.5rem;
+      font-size: 2.25rem;
     }
 
-    .logo img {
+    .marquee-item::after {
+      margin-inline-start: 1.75rem;
+    }
+
+    .marquee-logo {
       width: 2.75rem;
       height: 2.75rem;
     }
+
+    .marquee-logo img {
+      width: 1.75rem;
+      height: 1.75rem;
+    }
+
+    .filters {
+      margin-bottom: var(--space-l);
+    }
+
+    .grid {
+      grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+      gap: var(--space-m);
+    }
+
+    .card {
+      gap: 0.75rem;
+      padding: 0.875rem;
+    }
+
+    .logo {
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 0.625rem;
+    }
+
+    .logo img {
+      width: 1.75rem;
+      height: 1.75rem;
+    }
+
+    .name {
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Animación de los filtros (View Transitions): algo más lenta que la del navegador y
+     con la misma curva que el resto de la web. :global() porque estos pseudoelementos
+     no pertenecen a ningún elemento del componente. */
+  :global(::view-transition-group(*.tech-card)) {
+    animation-duration: 0.45s;
+    animation-timing-function: var(--ease-out);
   }
 </style>

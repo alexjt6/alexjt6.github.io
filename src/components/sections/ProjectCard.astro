@@ -1,5 +1,6 @@
 ---
 // Tarjeta de un proyecto: captura (opcional), título, descripción, tecnologías y enlaces.
+// Si el proyecto tiene `inProgress: true`, al lado del título sale la etiqueta "En desarrollo".
 // Si no tiene captura, arriba se muestra el logo de su tecnología principal: la primera de su
 // lista que tenga logo en src/data/profile.ts (si ninguna lo tiene, un icono de código </>).
 import type { CollectionEntry } from 'astro:content';
@@ -12,8 +13,10 @@ interface Props {
 }
 
 const { project } = Astro.props;
-const { title, description, technologies, image, repo, demo } = project.data;
+const { description, technologies, image, repo, demo, inProgress } = project.data;
 const { lang, t } = getI18n(Astro.currentLocale);
+// El título puede ser un texto o uno por idioma ({ es, en })
+const title = typeof project.data.title === 'string' ? project.data.title : project.data.title[lang];
 
 // Todas las tecnologías con logo, de todas las categorías, en una sola lista
 const techsWithLogo = Object.values(profile.technologies).flat();
@@ -42,11 +45,27 @@ const mainTech = technologies.map((name) => techsWithLogo.find((tech) => tech.na
   }
 
   <h3>{title}</h3>
+  {/* Etiqueta con un punto que late (como el "Abierto a nuevas oportunidades" del inicio) */}
+  {
+    inProgress && (
+      <p class="badge">
+        <span class="badge-dot" aria-hidden="true" />
+        {t.projects.inProgress}
+      </p>
+    )
+  }
   <p class="description">{description[lang]}</p>
 
-  <ul class="tags" aria-label={t.projects.technologies}>
-    {technologies.map((tech) => <li>{tech}</li>)}
-  </ul>
+  {/* Sin tecnologías (lista vacía), no se pinta la lista */}
+  {
+    technologies.length > 0 && (
+      <ul class="tags" aria-label={t.projects.technologies}>
+        {technologies.map((tech) => (
+          <li>{tech}</li>
+        ))}
+      </ul>
+    )
+  }
 
   {
     (repo || demo) && (
@@ -163,6 +182,47 @@ const mainTech = technologies.map((name) => techsWithLogo.find((tech) => tech.na
 
   h3 {
     margin-bottom: var(--space-s);
+  }
+
+  /* Etiqueta "En desarrollo": píldora ámbar con un punto que emite una onda */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start; /* en una columna flex, ocupa solo su ancho */
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding: 0.125rem 0.625rem;
+    border: 1px solid light-dark(rgb(180 83 9 / 0.25), rgb(251 191 36 / 0.3));
+    border-radius: 999px;
+    background: light-dark(rgb(245 158 11 / 0.1), rgb(251 191 36 / 0.1));
+    color: light-dark(#b45309, #fbbf24);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .badge-dot {
+    position: relative;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .badge-dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: badge-ping 2s var(--ease-out) infinite;
+  }
+
+  @keyframes badge-ping {
+    75%,
+    100% {
+      scale: 2.6;
+      opacity: 0;
+    }
   }
 
   /* La descripción ocupa el espacio sobrante: así las etiquetas y los enlaces

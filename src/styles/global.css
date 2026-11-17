@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Estilos globales: variables, reset ligero y estilos base.
+   Estilos globales: variables, reset ligero, estilos base, utilidades y animaciones.
    Los estilos de cada componente están en su propio <style>.
    ========================================================================== */
 
@@ -10,14 +10,34 @@
 :root {
   color-scheme: light dark;
 
-  --color-bg: light-dark(#ffffff, #0f1115);
-  --color-surface: light-dark(#f4f5f7, #181b21);
-  --color-text: light-dark(#1a1d23, #e6e8eb);
-  --color-muted: light-dark(#555b66, #a3a9b4);
-  --color-border: light-dark(#dde0e5, #2b3039);
-  --color-accent: light-dark(#1d4ed8, #7aa2ff);
+  /* Colores */
+  --color-bg: light-dark(#f7f8fb, #0a0c11); /* fondo de la página */
+  --color-surface: light-dark(#ffffff, #11141c); /* tarjetas y paneles */
+  --color-surface-2: light-dark(#eef1f6, #181c26); /* rellenos suaves (botón copiar, iconos…) */
+  --color-text: light-dark(#131720, #e7e9ef);
+  --color-muted: light-dark(#576072, #9ba3b4);
+  --color-border: light-dark(#e2e6ee, #232938);
+  --color-accent: light-dark(#1d4ed8, #7aa2ff); /* azul: enlaces y detalles */
+  --color-accent-2: light-dark(#7c3aed, #b69cff); /* violeta: segundo color de los degradados */
+  --color-accent-soft: light-dark(rgb(29 78 216 / 0.08), rgb(122 162 255 / 0.12)); /* fondo de etiquetas */
+  --color-success: light-dark(#16a34a, #4ade80); /* punto verde de "disponible" */
 
+  /* Degradados. El del texto cambia con el tema; el de los botones es igual en los dos
+     (lleva texto blanco encima, con buen contraste en ambos extremos) */
+  --gradient-text: linear-gradient(110deg, var(--color-accent), var(--color-accent-2));
+  --gradient-button: linear-gradient(135deg, #2563eb, #7c3aed);
+  /* Línea separadora que se desvanece por los lados (secciones y pie) */
+  --gradient-divider: linear-gradient(90deg, transparent, var(--color-border) 15%, var(--color-border) 85%, transparent);
+
+  /* Sombras: una suave para tarjetas y otra con brillo de color al pasar el ratón */
+  --shadow-card:
+    0 1px 2px light-dark(rgb(16 24 40 / 0.05), rgb(0 0 0 / 0.4)),
+    0 6px 20px -10px light-dark(rgb(16 24 40 / 0.12), rgb(0 0 0 / 0.6));
+  --shadow-hover: 0 20px 40px -18px light-dark(rgb(37 99 235 / 0.35), rgb(122 162 255 / 0.3));
+
+  /* Fuentes. Space Grotesk (títulos) se importa en BaseLayout.astro */
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Space Grotesk Variable', var(--font-sans);
   --font-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
 
   --space-xs: 0.25rem;
@@ -26,9 +46,13 @@
   --space-l: 2rem;
   --space-xl: 4rem;
 
-  --radius: 0.5rem;
+  --radius: 0.75rem;
+  --radius-l: 1.25rem; /* tarjetas y paneles */
   --max-width: 60rem;
   --container-padding: var(--space-m);
+
+  /* Curva de las animaciones: arranca rápido y frena suave */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Escritorio (≥ 900 px): contenedor ancho (hasta 1600 px) y margen lateral
@@ -63,13 +87,23 @@ body {
   font-family: var(--font-sans);
   line-height: 1.6;
   -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased; /* texto algo más fino y nítido en macOS */
 }
 
+/* Títulos con Space Grotesk y letras algo más juntas.
+   text-wrap: balance reparte el texto entre las líneas para que no quede una palabra sola al final. */
 h1,
 h2,
 h3 {
-  line-height: 1.2;
+  font-family: var(--font-display);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
   margin-block: 0 var(--space-m);
+}
+
+h2 {
+  font-size: 2rem;
 }
 
 p {
@@ -80,7 +114,7 @@ p {
    para que las líneas no sean demasiado largas en pantallas anchas */
 @media (min-width: 56.25rem) {
   h2 {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
 
   h3 {
@@ -103,10 +137,21 @@ a {
   text-underline-offset: 0.2em;
 }
 
+/* Texto seleccionado con el color de acento */
+::selection {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
 /* Foco visible solo al navegar con teclado */
 :focus-visible {
   outline: 3px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+/* La numeración de las secciones (01, 02…) empieza en <main>. Ver Section.astro */
+main {
+  counter-reset: section;
 }
 
 /* La cabecera es fija: al ir a una sección (#projects…) se deja arriba un hueco
@@ -117,7 +162,7 @@ html {
 
 @media (min-width: 48rem) {
   html {
-    scroll-padding-top: 3.75rem; /* escritorio: cabecera de una fila (~59px) */
+    scroll-padding-top: 3.75rem; /* escritorio: cabecera de una fila (~57px) */
   }
 }
 
@@ -148,60 +193,198 @@ html {
   white-space: nowrap;
 }
 
+/* Texto con degradado (azul → violeta). Mejor en un <span>: así el degradado
+   ocupa solo el texto y no todo el ancho del bloque. */
+.gradient-text {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Modo de alto contraste de Windows: texto normal en lugar del degradado */
+@media (forced-colors: active) {
+  .gradient-text {
+    background: none;
+    color: CanvasText;
+  }
+}
+
 /* Botón-enlace reutilizable (enlaces del inicio, contacto, descarga del CV) */
 .button {
   display: inline-flex;
   align-items: center;
   gap: var(--space-s);
   min-height: 2.75rem;
-  padding: var(--space-s) var(--space-m);
+  padding: var(--space-s) 1.25rem;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: 999px; /* forma de píldora */
+  background: var(--color-surface);
   color: var(--color-text);
   font-weight: 600;
   text-decoration: none;
+  transition:
+    translate 0.25s var(--ease-out),
+    border-color 0.25s,
+    color 0.25s,
+    box-shadow 0.25s;
 }
 
+/* Al pasar el ratón: sube 2 px, se colorea y brilla */
 .button:hover {
+  translate: 0 -2px;
   border-color: var(--color-accent);
   color: var(--color-accent);
+  box-shadow: var(--shadow-hover);
 }
 
-/* Variante destacada */
+/* Iconos de los botones: se desplazan un poco hacia donde apunta la flecha */
+.button .icon {
+  flex-shrink: 0;
+  transition: translate 0.25s var(--ease-out);
+}
+
+.button:hover .icon-down {
+  translate: 0 2px;
+}
+
+.button:hover .icon-right {
+  translate: 3px 0;
+}
+
+.button:hover .icon-external {
+  translate: 2px -2px;
+}
+
+/* Variante destacada: fondo con degradado y texto blanco */
 .button-primary {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-bg);
+  border-color: transparent;
+  background: var(--gradient-button);
+  color: #ffffff;
+  box-shadow: 0 8px 24px -12px rgb(79 70 229 / 0.7);
 }
 
 .button-primary:hover {
-  color: var(--color-bg);
-  opacity: 0.9;
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 14px 32px -12px rgb(79 70 229 / 0.85);
 }
 
 /* Botón no disponible todavía (p. ej. CV sin subir) */
 .button-disabled,
 .button-disabled:hover {
+  translate: none;
   border-style: dashed;
   border-color: var(--color-border);
+  background: transparent;
+  box-shadow: none;
   color: var(--color-muted);
   cursor: not-allowed;
 }
 
-/* Etiquetas en fila (tecnologías de proyectos, experiencia y habilidades) */
+/* Etiquetas en fila (tecnologías de proyectos y experiencia) */
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-xs);
+  gap: 0.375rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .tags li {
-  padding: 0 var(--space-s);
-  border: 1px solid var(--color-border);
+  padding: 0.125rem 0.625rem;
   border-radius: 999px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Panel con aspecto de tarjeta y un brillo de color en la esquina (CV y Contacto).
+   En móvil, menos relleno para que quepa la caja del email.
+   container-type: lo que hay dentro puede adaptarse al ancho del panel con @container (ver Contact.astro) */
+.panel {
+  container-type: inline-size;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-l);
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--color-accent-soft), transparent 50%),
+    var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.panel > :last-child {
+  margin-bottom: 0;
+}
+
+@media (min-width: 48rem) {
+  .panel {
+    padding: var(--space-l);
+  }
+}
+
+/* Icono de la esquina del panel (decorativo) */
+.panel-icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: var(--space-m);
+  border-radius: var(--radius);
+  background: var(--gradient-button);
+  color: #ffffff;
+  box-shadow: 0 8px 20px -10px rgb(79 70 229 / 0.7);
+}
+
+/* --- Animación de aparición al hacer scroll ---------------------------------
+   Los elementos con el atributo data-reveal aparecen con un fundido hacia arriba
+   al entrar en pantalla. El script está en BaseLayout.astro: marca con .reveal-pending
+   los que todavía no se ven y los cambia a .reveal-in cuando aparecen. */
+@media screen {
+  .reveal-pending {
+    opacity: 0;
+  }
+}
+
+.reveal-in {
+  animation: reveal-up 0.7s var(--ease-out) backwards;
+  /* Retraso para que los que aparecen a la vez lo hagan uno tras otro (lo pone el script) */
+  animation-delay: var(--reveal-delay, 0s);
+}
+
+/* Solo hay "from": la animación termina en el estilo normal del elemento.
+   También la usa la entrada del inicio (Hero.astro). */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    translate: 0 1.5rem;
+  }
+}
+
+/* --- Cambio de tema animado ------------------------------------------------
+   ThemeToggle usa la View Transitions API: el navegador "fotografía" la página antes
+   y después del cambio, y el script anima la nueva con un círculo que crece desde
+   el botón. Aquí se quita el fundido que el navegador pone por defecto. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* --- Reducir movimiento ------------------------------------------------------
+   Si el sistema tiene activado "reducir movimiento", las animaciones y transiciones
+   terminan al instante: todo se ve directamente en su estado final. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+  }
 }

@@ -10,7 +10,7 @@ const { es, en } = translations;
 
 <BaseLayout title={`404 · ${es.notFound.title}`} noIndex>
   <div class="container not-found">
-    <h1>404</h1>
+    <h1><span class="gradient-text">404</span></h1>
     <p>
       <strong>{es.notFound.title}.</strong> {es.notFound.text}
     </p>
@@ -30,7 +30,9 @@ const { es, en } = translations;
   }
 
   h1 {
-    font-size: clamp(3rem, 12vw, 5rem);
+    font-size: clamp(4rem, 16vw, 7rem);
+    letter-spacing: -0.04em;
+    line-height: 1;
   }
 
   .links {

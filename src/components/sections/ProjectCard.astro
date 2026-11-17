@@ -1,8 +1,11 @@
 ---
 // Tarjeta de un proyecto: captura (opcional), título, descripción, tecnologías y enlaces.
+// Si no tiene captura, arriba se muestra el logo de su tecnología principal: la primera de su
+// lista que tenga logo en src/data/profile.ts (si ninguna lo tiene, un icono de código </>).
 import type { CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
 import { getI18n } from '../../i18n';
+import { profile } from '../../data/profile';
 
 interface Props {
   project: CollectionEntry<'projects'>;
@@ -11,14 +14,35 @@ interface Props {
 const { project } = Astro.props;
 const { title, description, technologies, image, repo, demo } = project.data;
 const { lang, t } = getI18n(Astro.currentLocale);
+
+// Todas las tecnologías con logo, de todas las categorías, en una sola lista
+const techsWithLogo = Object.values(profile.technologies).flat();
+// Busca el logo de cada tecnología del proyecto (undefined si no tiene) y se queda con el primero que exista
+const mainTech = technologies.map((name) => techsWithLogo.find((tech) => tech.name === name)).find(Boolean);
 ---
 
-<article class="card">
-  {/* <Image> genera una versión optimizada (webp) con su ancho y alto, para que la página no "salte" al cargar */}
-  {image && <Image class="card-image" src={image} alt={`${t.projects.imageAlt} ${title}`} width={800} />}
+{/* data-reveal: aparece con un fundido al llegar con el scroll (ver BaseLayout.astro) */}
+<article class="card" data-reveal>
+  {
+    image ? (
+      // <Image> genera una versión optimizada (webp) con su ancho y alto, para que la página no "salte" al cargar
+      <Image class="card-image" src={image} alt={`${t.projects.imageAlt} ${title}`} width={800} />
+    ) : (
+      // Decorativo (aria-hidden): las tecnologías ya están escritas en las etiquetas
+      <span class="card-icon" aria-hidden="true">
+        {mainTech ? (
+          <img src={`/logos/${mainTech.logo}.svg`} alt="" width="28" height="28" loading="lazy" decoding="async" />
+        ) : (
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m8 6-6 6 6 6M16 6l6 6-6 6" />
+          </svg>
+        )}
+      </span>
+    )
+  }
 
   <h3>{title}</h3>
-  <p>{description[lang]}</p>
+  <p class="description">{description[lang]}</p>
 
   <ul class="tags" aria-label={t.projects.technologies}>
     {technologies.map((tech) => <li>{tech}</li>)}
@@ -27,17 +51,24 @@ const { lang, t } = getI18n(Astro.currentLocale);
   {
     (repo || demo) && (
       <p class="card-links">
-        {/* El texto oculto añade el nombre del proyecto para lectores de pantalla */}
+        {/* El texto oculto añade el nombre del proyecto para lectores de pantalla.
+            La flecha ↗ indica que el enlace lleva a otra web */}
         {repo && (
           <a href={repo}>
             {t.projects.code}
             <span class="visually-hidden">{` (${title})`}</span>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 17 17 7M7 7h10v10" />
+            </svg>
           </a>
         )}
         {demo && (
           <a href={demo}>
             {t.projects.demo}
             <span class="visually-hidden">{` (${title})`}</span>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 17 17 7M7 7h10v10" />
+            </svg>
           </a>
         )}
       </p>
@@ -47,12 +78,54 @@ const { lang, t } = getI18n(Astro.currentLocale);
 
 <style>
   .card {
+    position: relative; /* referencia para el borde con degradado (::before) */
     display: flex;
     flex-direction: column;
-    padding: var(--space-m);
+    padding: 1.5rem;
     border: 1px solid var(--color-border);
-    border-radius: var(--radius);
+    border-radius: var(--radius-l);
     background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+    transition:
+      translate 0.3s var(--ease-out),
+      box-shadow 0.3s;
+  }
+
+  /* Borde con degradado que aparece al pasar el ratón (o al enfocar un enlace con el teclado).
+     Truco: un pseudo-elemento con el degradado de fondo y una máscara que solo deja ver
+     su "padding" de 1 px, justo encima del borde normal de la tarjeta. */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: -1px; /* ocupa también el borde de la tarjeta */
+    padding: 1px; /* grosor del borde */
+    border-radius: inherit;
+    background: var(--gradient-text);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude; /* deja solo la parte que no se solapa: el anillo de 1 px */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .card:hover,
+  .card:focus-within {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .card:hover::before,
+  .card:focus-within::before {
+    opacity: 1;
+  }
+
+  /* Solo con ratón: la tarjeta sube un poco (en móvil se quedaría "levantada" tras tocarla) */
+  @media (hover: hover) {
+    .card:hover {
+      translate: 0 -4px;
+    }
   }
 
   /* Todas las capturas con la misma proporción (16:9), recortando si hace falta */
@@ -61,23 +134,70 @@ const { lang, t } = getI18n(Astro.currentLocale);
     height: auto;
     aspect-ratio: 16 / 9;
     object-fit: cover;
-    margin-bottom: var(--space-m);
+    margin-bottom: 1.25rem;
     border: 1px solid var(--color-border);
-    border-radius: calc(var(--radius) / 2);
+    border-radius: var(--radius);
+  }
+
+  /* Baldosa con el logo. Clara también en modo oscuro (como en Tecnologías),
+     para que los logos oscuros se vean bien. Al pasar el ratón gira un poco. */
+  .card-icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: light-dark(var(--color-surface-2), #e6e8eb);
+    color: #1d4ed8; /* color del icono </> */
+    transition:
+      rotate 0.4s var(--ease-out),
+      scale 0.4s var(--ease-out);
+  }
+
+  .card:hover .card-icon {
+    rotate: -6deg;
+    scale: 1.08;
   }
 
   h3 {
     margin-bottom: var(--space-s);
   }
 
-  .tags {
-    margin-bottom: var(--space-m);
+  /* La descripción ocupa el espacio sobrante: así las etiquetas y los enlaces
+     quedan abajo y alineados entre tarjetas de distinta altura */
+  .description {
+    flex-grow: 1;
+    color: var(--color-muted);
   }
 
   .card-links {
     display: flex;
-    gap: var(--space-m);
-    margin: auto 0 0; /* empuja los enlaces al final de la tarjeta */
+    flex-wrap: wrap;
+    gap: var(--space-l);
+    margin: 1.25rem 0 0;
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--color-border);
     font-weight: 600;
+  }
+
+  .card-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    text-decoration: none;
+  }
+
+  .card-links a:hover {
+    text-decoration: underline;
+  }
+
+  .card-links svg {
+    transition: translate 0.25s var(--ease-out);
+  }
+
+  .card-links a:hover svg {
+    translate: 2px -2px;
   }
 </style>

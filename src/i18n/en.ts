@@ -23,6 +23,7 @@ export const en: Translations = {
     label: 'Dark mode',
   },
   hero: {
+    status: 'Open to new opportunities',
     headline: 'Multiplatform App Development (DAM) student · Software developer',
     bio: "Currently doing a software development internship. I'm looking for opportunities to keep learning and contribute to real projects.",
     projects: 'View projects',
@@ -129,6 +130,9 @@ export const en: Translations = {
     copied: 'Copied',
     copyError: 'Error',
     copyLabel: 'Copy email address',
+  },
+  footer: {
+    backToTop: 'Back to top',
   },
   notFound: {
     title: 'Page not found',

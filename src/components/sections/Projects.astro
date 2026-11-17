@@ -16,7 +16,9 @@ const projects = (await getCollection('projects')).sort(
 <Section id="projects" title={t.nav.projects}>
   {
     projects.length === 0 ? (
-      <p class="empty">{t.projects.empty}</p>
+      <p class="empty" data-reveal>
+        {t.projects.empty}
+      </p>
     ) : (
       <div class="grid">
         {projects.map((project) => (
@@ -31,7 +33,7 @@ const projects = (await getCollection('projects')).sort(
   .empty {
     padding: var(--space-l) var(--space-m);
     border: 1px dashed var(--color-border);
-    border-radius: var(--radius);
+    border-radius: var(--radius-l);
     color: var(--color-muted);
     text-align: center;
   }

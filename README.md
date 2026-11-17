@@ -6,6 +6,8 @@ Web personal para mostrar mis proyectos y buscar prácticas o empleo.
 
 Hecha con [Astro](https://docs.astro.build) 7 + TypeScript y CSS propio.
 Es una web estática: no tiene backend ni base de datos.
+La fuente de los títulos, [Space Grotesk](https://fontsource.org/fonts/space-grotesk),
+se instala con npm (Fontsource) y se sirve desde la propia web.
 
 ## Requisitos
 
@@ -38,7 +40,7 @@ src/
   data/cv.ts          getCv(): ruta del CV de cada idioma y si el PDF está subido
   content/projects/   Un archivo .md por proyecto (la carpeta se crea con el primero)
   content.config.ts   Campos que debe tener cada proyecto
-  styles/global.css   Colores, espaciados y estilos base
+  styles/global.css   Colores, degradados, espaciados, estilos base y animaciones compartidas
 public/               Archivos que se copian tal cual (favicon, imágenes de vista previa, robots.txt, CV…)
   logos/              Logos de las tecnologías (Devicon)
   flags/              Banderas de los idiomas (flag-icons)
@@ -54,8 +56,8 @@ Todos los textos visibles están en `src/i18n/es.ts` y `src/i18n/en.ts`.
 
 ### Datos personales
 
-En `src/data/profile.ts`: nombre, iniciales (monograma del Inicio en escritorio), email,
-enlaces, CV y tecnologías por categoría (`technologies`).
+En `src/data/profile.ts`: nombre, iniciales (logotipo de la cabecera y monograma del Inicio
+si no hay foto), email, enlaces, CV y tecnologías por categoría (`technologies`).
 
 ### Añadir una tecnología (con su logo)
 
@@ -63,7 +65,8 @@ enlaces, CV y tecnologías por categoría (`technologies`).
 2. Guárdalo en `public/logos/`, p. ej. `public/logos/docker.svg`.
 3. En `src/data/profile.ts`, añade `{ name: 'Docker', logo: 'docker' }` en su categoría.
 
-El nombre (`name`) se muestra debajo del logo.
+El nombre (`name`) se muestra debajo del logo. Los proyectos sin captura también usan estos
+logos: su tarjeta muestra el de la primera tecnología de su lista que tenga logo.
 
 ### Bloques que se ocultan si están vacíos
 
@@ -71,6 +74,7 @@ Así la web publicada nunca enseña huecos ni marcadores. Para que aparezcan, re
 
 | Bloque | Dónde | Qué poner |
 | --- | --- | --- |
+| Etiqueta de estado del inicio (con punto verde) | `hero.status` en `es.ts` y `en.ts` | Un texto corto, p. ej. `'Abierto a nuevas oportunidades'` |
 | Experiencia (y su entrada en el menú) | `experience.items` en `es.ts` y `en.ts` | `{ role, company, dates, tasks: [...], technologies: [...] }` (hay ejemplos comentados). Basta con `role` y `company`: `dates: ''`, `tasks: []` y `technologies: []` no se muestran |
 | Texto de "Sobre mí" | `about.intro` en `es.ts` y `en.ts` | Un párrafo |
 | Formación complementaria | `about.courses` en `es.ts` y `en.ts` | `{ name, provider, date, url }` (`url` es opcional) |
@@ -133,16 +137,17 @@ y pedir a GitHub Support que borre las copias en caché (guía de GitHub
 
 ### Foto del inicio
 
-En escritorio, a la derecha del nombre sale un cuadrado con las iniciales **AJT**.
-Para poner una foto en su lugar, guárdala como `src/assets/foto.jpg` (también vale
+En escritorio, a la derecha del nombre sale la foto (con un cuadro de color girado detrás) o,
+si no hay foto, un cuadrado con las iniciales **AJT**.
+Para poner o cambiar la foto, guárdala como `src/assets/foto.jpg` (también vale
 `.jpeg`, `.png`, `.webp` o `.avif`; crea la carpeta `assets` si no existe).
 
 No hay que tocar código: al compilar, `Hero.astro` busca ese archivo. Si existe, muestra la
 foto; si no, las iniciales. Para cambiarla, sustituye el archivo; para volver a AJT, bórralo.
 
-- Astro la recorta a cuadrado (por el centro), la reduce a 704×704 como máximo y la
+- Astro la recorta a cuadrado (por el centro), la reduce a 768×768 como máximo y la
   convierte a webp. Si es más pequeña no la amplía: el cuadrado mide lo que su lado corto.
-  Mejor que sea cuadrada y de al menos 704×704 para que se vea nítida.
+  Mejor que sea cuadrada y de al menos 768×768 para que se vea nítida.
 - Las fotos `.heic` del iPhone no valen: expórtala antes como JPG.
 - Como el monograma, en móvil y tablet no se muestra.
 
@@ -159,6 +164,27 @@ foto; si no, las iniciales. Para cambiarla, sustituye el archivo; para volver a 
 Están como variables al principio de `src/styles/global.css`.
 `light-dark(claro, oscuro)` define el color de cada tema.
 
+- `--color-accent` (azul) y `--color-accent-2` (violeta) forman el degradado de los títulos
+  destacados, las líneas y las viñetas (`--gradient-text`).
+- `--gradient-button` es el degradado de los botones principales y del logotipo. Es igual en
+  los dos temas porque lleva texto blanco encima: si lo cambias, comprueba que el blanco se lea bien.
+
+### Animaciones
+
+Todas son de CSS salvo dos pequeños scripts, y **se desactivan si el sistema tiene activado
+"reducir movimiento"** (Windows: Configuración → Accesibilidad → Efectos visuales → Efectos de animación).
+
+| Animación | Dónde |
+| --- | --- |
+| Entrada del inicio (los elementos aparecen uno tras otro) y fondo con manchas de color que flotan | `Hero.astro` |
+| Aparición al hacer scroll | Cualquier elemento con el atributo `data-reveal`. Script en `BaseLayout.astro`, estilos al final de `global.css` |
+| Cambio de tema con un círculo que crece desde el botón | `ThemeToggle.astro` (View Transitions API; sin ella, cambio directo) |
+| Barra de progreso de lectura bajo la cabecera | `Header.astro` (solo CSS, `animation-timeline: scroll()`; donde no hay soporte, no se muestra) |
+| Efectos al pasar el ratón (botones, tarjetas, logos) | En el `<style>` de cada componente |
+
+Para que otro elemento aparezca al hacer scroll, basta con añadirle `data-reveal`:
+`<div data-reveal>…</div>`.
+
 ## Cómo funciona
 
 - **Idiomas:** enrutado nativo de Astro (`i18n` en `astro.config.mjs`). Español en `/`
@@ -166,6 +192,11 @@ Están como variables al principio de `src/styles/global.css`.
   `getI18n(Astro.currentLocale)`.
 - **Tema claro/oscuro:** por defecto sigue al sistema. El botón guarda la elección en
   `localStorage` y un pequeño script en el `<head>` la aplica antes de pintar la página.
+- **Aparición al hacer scroll:** un `IntersectionObserver` avisa cuando un elemento con
+  `data-reveal` entra en pantalla y le pone la clase que lo anima. Solo se ocultan al cargar
+  los que están por debajo de la pantalla: si el script fallara, todo seguiría visible.
+- **Numeración de secciones (01, 02…):** un contador de CSS (`counter-increment`), así que se
+  ajusta solo si se oculta una sección.
 - **Copiar email (Contacto):** el botón usa la API del portapapeles (`navigator.clipboard`).
   Empieza oculto (`hidden`) y el script solo lo muestra si el navegador tiene esa API; sin
   JavaScript queda el enlace `mailto:`. Los textos de cada estado le llegan en atributos `data-*`.
@@ -188,6 +219,8 @@ compila la web y la publica en GitHub Pages. Tarda alrededor de 1 minuto.
 
 - Logos de tecnologías: [Devicon](https://github.com/devicons/devicon) (licencia MIT,
   ver `public/logos/LICENSE`). Los iconos de GitHub y LinkedIn de Contacto usan sus trazados.
+- Fuente de los títulos: [Space Grotesk](https://github.com/floriankarsten/space-grotesk)
+  (SIL Open Font License 1.1), instalada con [Fontsource](https://fontsource.org).
 - Banderas: [flag-icons](https://github.com/lipis/flag-icons) (licencia MIT, ver `public/flags/LICENSE`).
 - Las marcas y logos pertenecen a sus respectivos propietarios.
 

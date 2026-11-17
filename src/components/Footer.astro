@@ -1,25 +1,75 @@
 ---
-// Pie de página.
+// Pie de página: copyright y enlace para volver arriba.
+import { getI18n } from '../i18n';
 import { profile } from '../data/profile';
 
+const { t } = getI18n(Astro.currentLocale);
 const year = new Date().getFullYear(); // año en que se generó la web
 ---
 
 <footer class="footer">
-  <div class="container">
+  <div class="container footer-inner">
     <p>© {year} {profile.name}</p>
+    {/* #main: el contenido empieza justo debajo de la cabecera, así que sube hasta arriba del todo */}
+    <a class="to-top" href="#main">
+      {t.footer.backToTop}
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 19V5M5 12l7-7 7 7"></path>
+      </svg>
+    </a>
   </div>
 </footer>
 
 <style>
   .footer {
+    position: relative; /* referencia para la línea superior */
     padding-block: var(--space-l);
-    border-top: 1px solid var(--color-border);
     color: var(--color-muted);
     font-size: 0.9rem;
   }
 
+  /* Línea superior que se desvanece por los lados (igual que la de las secciones) */
+  .footer::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: var(--gradient-divider);
+  }
+
+  /* Copyright a la izquierda y "Volver arriba" a la derecha (una debajo de otra si no caben) */
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s) var(--space-m);
+  }
+
   .footer p {
     margin: 0;
+  }
+
+  .to-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--color-muted);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .to-top:hover {
+    color: var(--color-accent);
+  }
+
+  /* La flecha sube un poco al pasar el ratón */
+  .to-top svg {
+    transition: translate 0.25s var(--ease-out);
+  }
+
+  .to-top:hover svg {
+    translate: 0 -3px;
   }
 </style>

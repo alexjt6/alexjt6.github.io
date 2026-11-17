@@ -1,6 +1,8 @@
 ---
 // Envoltorio común de las secciones: <section> con su título <h2>.
 // aria-labelledby enlaza la sección con su título (útil para lectores de pantalla).
+// Encima del título va su número (01, 02…), que se calcula solo con un contador de CSS:
+// si una sección no se muestra (p. ej. Experiencia vacía), las demás se renumeran.
 interface Props {
   id: string; // se usa en el menú: href="#id"
   title: string;
@@ -11,15 +13,30 @@ const { id, title } = Astro.props;
 
 <section id={id} class="section" aria-labelledby={`${id}-title`}>
   <div class="container">
-    <h2 id={`${id}-title`}>{title}</h2>
+    {/* data-reveal: aparece con un fundido al llegar con el scroll (ver BaseLayout.astro) */}
+    <div class="section-heading" data-reveal>
+      {/* Número decorativo (aria-hidden): el lector de pantalla lee solo el título */}
+      <span class="section-index" aria-hidden="true"></span>
+      <h2 id={`${id}-title`}>{title}</h2>
+    </div>
     <slot />
   </div>
 </section>
 
 <style>
   .section {
-    padding-block: var(--space-l);
-    border-top: 1px solid var(--color-border);
+    position: relative; /* referencia para la línea superior */
+    padding-block: 3rem;
+    counter-increment: section; /* suma 1 al contador (se pone a 0 en <main>, global.css) */
+  }
+
+  /* Línea superior que se desvanece por los lados */
+  .section::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: var(--gradient-divider);
   }
 
   @media (min-width: 48rem) {
@@ -33,5 +50,39 @@ const { id, title } = Astro.props;
     .section {
       padding-block: clamp(4rem, 6vw, 6rem);
     }
+  }
+
+  .section-heading {
+    margin-bottom: var(--space-l);
+  }
+
+  .section-heading h2 {
+    margin: 0;
+  }
+
+  /* Número de la sección con una rayita de color: "01 ——" */
+  .section-index {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: var(--space-s);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* decimal-leading-zero: 01, 02, 03… */
+  .section-index::before {
+    content: counter(section, decimal-leading-zero);
+  }
+
+  .section-index::after {
+    content: '';
+    width: 2.5rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--gradient-text);
   }
 </style>

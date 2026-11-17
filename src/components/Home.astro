@@ -35,7 +35,16 @@ const { t } = getI18n(Astro.currentLocale);
      hace de contenedor con dos columnas. Cada sección mantiene su título y su id (#cv, #contact). */
   @media (min-width: 56.25rem) {
     .cv-contact {
-      border-top: 1px solid var(--color-border);
+      position: relative; /* referencia para la línea superior */
+    }
+
+    /* Línea superior que se desvanece por los lados (como la de Section.astro) */
+    .cv-contact::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 1px;
+      background: var(--gradient-divider);
     }
 
     .cv-contact-inner {
@@ -47,14 +56,28 @@ const { t } = getI18n(Astro.currentLocale);
       padding-inline: var(--container-padding);
     }
 
-    /* :global() porque .section y .container están dentro de otros componentes.
-       Se quitan su línea superior y su margen lateral (ya los pone este bloque). */
+    /* :global() porque .section, .container y .panel están dentro de otros componentes.
+       Se quitan la línea superior de cada sección y su margen lateral (ya los pone este bloque). */
+    .cv-contact-inner > :global(.section)::before {
+      display: none;
+    }
+
+    /* Los dos paneles con la misma altura: la sección, su contenedor y el panel
+       se estiran (flex en columna) hasta ocupar todo el alto de la fila */
     .cv-contact-inner > :global(.section) {
-      border-top: none;
+      display: flex;
+      flex-direction: column;
     }
 
     .cv-contact-inner :global(.container) {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
       padding-inline: 0;
+    }
+
+    .cv-contact-inner :global(.panel) {
+      flex: 1;
     }
   }
 </style>

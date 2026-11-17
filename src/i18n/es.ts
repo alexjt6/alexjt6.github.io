@@ -41,6 +41,8 @@ export const es = {
     label: 'Modo oscuro',
   },
   hero: {
+    // Etiqueta con un punto verde encima del nombre. Vacío ('') = no se muestra.
+    status: 'Abierto a nuevas oportunidades',
     headline: 'Estudiante de DAM · Desarrollador de software',
     bio: 'Actualmente en prácticas de desarrollo de software. Busco oportunidades para seguir aprendiendo y aportar en proyectos reales.',
     // Botones del inicio. El del CV solo aparece si el PDF de este idioma está subido.
@@ -164,6 +166,9 @@ export const es = {
     copied: 'Copiado',
     copyError: 'Error',
     copyLabel: 'Copiar el email',
+  },
+  footer: {
+    backToTop: 'Volver arriba',
   },
   notFound: {
     title: 'Página no encontrada',

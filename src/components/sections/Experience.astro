@@ -1,7 +1,7 @@
 ---
 // Experiencia (prácticas, trabajos…). Home.astro solo la muestra si hay elementos en experience.items.
 // De cada experiencia, las fechas, el logo, las tareas y las tecnologías solo se pintan si no están vacíos.
-// El logo (public/companies/) solo se ve en escritorio, arriba a la derecha de la tarjeta.
+// El logo (public/companies/) va encima del puesto en móvil y arriba a la derecha de la tarjeta en escritorio.
 import Section from '../Section.astro';
 import { getI18n } from '../../i18n';
 
@@ -12,13 +12,14 @@ const { t } = getI18n(Astro.currentLocale);
   <ul class="jobs">
     {
       t.experience.items.map((job) => (
-        <li>
+        // data-reveal: aparece con un fundido al llegar con el scroll (ver BaseLayout.astro)
+        <li class="job" data-reveal>
           {/* Logo decorativo (alt vacío): el nombre de la empresa ya está escrito al lado.
               Va el primero para no alterar el ":last-child" de abajo. */}
           {job.logo && <img class="company-logo" src={`/companies/${job.logo}`} alt="" loading="lazy" decoding="async" />}
           <h3>{job.role}</h3>
           <p class="meta">
-            {job.company}
+            <span class="company">{job.company}</span>
             {job.dates && ` · ${job.dates}`}
           </p>
           {job.tasks.length > 0 && (
@@ -44,19 +45,45 @@ const { t } = getI18n(Astro.currentLocale);
 <style>
   .jobs {
     display: grid;
-    gap: var(--space-l);
+    gap: var(--space-m);
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .jobs > li {
-    padding-left: var(--space-m);
-    border-left: 3px solid var(--color-accent);
+  /* Tarjeta de cada experiencia */
+  .job {
+    position: relative; /* referencia para la barra de color y el logo */
+    overflow: hidden; /* recorta la barra de color a las esquinas redondeadas */
+    padding: 1.5rem 1.5rem 1.5rem 1.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-l);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+    transition:
+      translate 0.3s var(--ease-out),
+      box-shadow 0.3s;
+  }
+
+  /* Barra de color a la izquierda, con degradado vertical (azul → violeta) */
+  .job::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: linear-gradient(var(--color-accent), var(--color-accent-2));
+  }
+
+  /* Solo con ratón: la tarjeta sube y brilla un poco */
+  @media (hover: hover) {
+    .job:hover {
+      translate: 0 -4px;
+      box-shadow: var(--shadow-hover);
+    }
   }
 
   /* Sin margen debajo del último elemento (sea cual sea, según los datos que haya) */
-  .jobs > li > :last-child {
+  .job > :last-child {
     margin-bottom: 0;
   }
 
@@ -68,14 +95,46 @@ const { t } = getI18n(Astro.currentLocale);
     color: var(--color-muted);
   }
 
+  .company {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  /* Tareas con viñetas propias: un pequeño rombo con degradado */
   .tasks {
-    margin: 0 0 var(--space-m);
+    display: grid;
+    gap: 0.375rem;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tasks li {
+    position: relative;
     padding-left: 1.25rem;
   }
 
-  /* En móvil y tablet el logo no se muestra (el aspecto queda igual que antes) */
+  .tasks li::before {
+    content: '';
+    position: absolute;
+    top: 0.6em;
+    left: 0.125rem;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 1px;
+    background: var(--gradient-text);
+    rotate: 45deg;
+  }
+
+  /* Logo sobre una "baldosa" blanca (los logos traen fondo blanco), igual en modo claro y oscuro.
+     Alto fijo; el ancho sale de la proporción de cada imagen. */
   .company-logo {
-    display: none;
+    width: auto;
+    height: 2.75rem;
+    margin-bottom: var(--space-m);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #ffffff;
   }
 
   /* Escritorio: tarjetas lado a lado y todas de la misma altura (la de la más alta).
@@ -83,29 +142,20 @@ const { t } = getI18n(Astro.currentLocale);
   @media (min-width: 56.25rem) {
     .jobs {
       grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+      gap: var(--space-l);
     }
 
-    .jobs > li {
-      position: relative; /* referencia para colocar el logo */
-      padding: var(--space-l);
-      border: 1px solid var(--color-border);
-      border-left: 3px solid var(--color-accent);
-      border-radius: var(--radius);
-      background: var(--color-surface);
+    .job {
+      padding: var(--space-l) var(--space-l) var(--space-l) 2.25rem;
     }
 
-    /* Logo arriba a la derecha, sobre una "baldosa" blanca (los logos traen fondo blanco),
-       igual en modo claro y oscuro. Alto fijo; el ancho sale de la proporción de cada imagen. */
+    /* Logo arriba a la derecha y algo más grande */
     .company-logo {
-      display: block;
       position: absolute;
       top: var(--space-l);
       right: var(--space-l);
-      width: auto;
       height: 3.5rem;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      background: #ffffff;
+      margin: 0;
     }
 
     /* Hueco a la derecha del título y la empresa para que el texto no pase por debajo del logo

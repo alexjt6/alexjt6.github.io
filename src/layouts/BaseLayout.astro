@@ -1,5 +1,11 @@
 ---
 // Estructura común de todas las páginas: <html>, <head>, cabecera, contenido y pie.
+
+// Fuente de los títulos (Space Grotesk), autoalojada con Fontsource: al compilar, Astro copia
+// sus archivos a la web. No se puede cargar de Google Fonts porque la CSP solo permite 'self'.
+import '@fontsource-variable/space-grotesk';
+// URL del archivo de la fuente con las letras latinas (?url = devuelve la ruta, no el contenido)
+import spaceGroteskUrl from '@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2?url';
 import '../styles/global.css';
 import { getAbsoluteLocaleUrl } from 'astro:i18n';
 import Header from '../components/Header.astro';
@@ -36,6 +42,8 @@ const ogLocaleAlternate = lang === 'es' ? 'en_US' : 'es_ES';
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     {/* Icono al añadir la web a la pantalla de inicio del iPhone */}
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    {/* Precarga la fuente de los títulos para que el nombre del inicio se pinte antes con ella */}
+    <link rel="preload" href={spaceGroteskUrl} as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
     <meta name="description" content={t.site.description} />
     <meta name="author" content={profile.name} />
@@ -96,6 +104,41 @@ const ogLocaleAlternate = lang === 'es' ? 'en_US' : 'es_ES';
       <slot />
     </main>
     <Footer />
+
+    <script>
+      // Animación de aparición al hacer scroll: los elementos con data-reveal aparecen con un
+      // fundido al entrar en pantalla (los estilos están al final de global.css).
+      // Solo se ocultan los que están por debajo de la pantalla al cargar: así lo que ya se ve
+      // no parpadea y, si el script fallara, todo seguiría visible.
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // IntersectionObserver avisa cuando un elemento entra en la zona visible de la página
+      if (!reduceMotion && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries
+              .filter((entry) => entry.isIntersecting)
+              .forEach((entry, index) => {
+                const element = entry.target as HTMLElement;
+                // Si entran varios a la vez (p. ej. una fila de tarjetas), aparecen uno tras otro.
+                // Math.min limita el retraso (máx. 450 ms) para que ninguno tarde demasiado.
+                element.style.setProperty('--reveal-delay', `${Math.min(index, 5) * 90}ms`);
+                element.classList.replace('reveal-pending', 'reveal-in');
+                observer.unobserve(element); // solo se anima la primera vez
+              });
+          },
+          // Se activa cuando el elemento ya ha subido un 10 % por encima del borde inferior
+          { rootMargin: '0px 0px -10% 0px' },
+        );
+
+        for (const element of document.querySelectorAll<HTMLElement>('[data-reveal]')) {
+          if (element.getBoundingClientRect().top > window.innerHeight) {
+            element.classList.add('reveal-pending');
+            observer.observe(element);
+          }
+        }
+      }
+    </script>
   </body>
 </html>
 
@@ -107,9 +150,10 @@ const ogLocaleAlternate = lang === 'es' ? 'en_US' : 'es_ES';
     left: var(--space-s);
     z-index: 10;
     padding: var(--space-s) var(--space-m);
-    background: var(--color-accent);
-    color: var(--color-bg);
+    background: var(--gradient-button);
+    color: #ffffff;
     border-radius: var(--radius);
+    font-weight: 600;
     transform: translateY(-200%);
   }
 

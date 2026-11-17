@@ -1,6 +1,8 @@
 ---
 // Botón para alternar entre tema claro y oscuro.
 // aria-pressed="true" significa "modo oscuro activado" (patrón de botón conmutador).
+// Al cambiar, el nuevo tema se extiende en círculo desde el botón (View Transitions API);
+// en navegadores sin esa API o con "reducir movimiento", el cambio es instantáneo.
 import { getI18n } from '../i18n';
 
 const { t } = getI18n(Astro.currentLocale);
@@ -43,9 +45,40 @@ const { t } = getI18n(Astro.currentLocale);
 
     button.addEventListener('click', () => {
       const next: Theme = getCurrentTheme() === 'dark' ? 'light' : 'dark';
-      root.dataset.theme = next;
-      updateButton();
       localStorage.setItem('theme', next); // se recuerda al recargar
+
+      const applyTheme = () => {
+        root.dataset.theme = next;
+        updateButton();
+      };
+
+      // Sin View Transitions (navegadores antiguos) o con "reducir movimiento": cambio directo
+      const animate = 'startViewTransition' in document && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!animate) {
+        applyTheme();
+        return;
+      }
+
+      // Centro del botón y radio necesario para que el círculo cubra toda la pantalla
+      // (la distancia hasta la esquina más lejana: Math.hypot = teorema de Pitágoras)
+      const rect = button.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+
+      // El navegador guarda una imagen de la página, aplica el tema y crea otra. Cuando están
+      // listas (ready), se anima la nueva recortándola con un círculo que crece (clip-path).
+      const transition = document.startViewTransition(applyTheme);
+      transition.ready
+        .then(() => {
+          root.animate(
+            { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+            { duration: 550, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', pseudoElement: '::view-transition-new(root)' },
+          );
+        })
+        // Si se pulsa dos veces muy rápido, el navegador cancela la primera transición
+        // (ready falla). No es un problema: el tema ya se ha aplicado igualmente.
+        .catch(() => {});
     });
   }
 </script>
@@ -58,14 +91,18 @@ const { t } = getI18n(Astro.currentLocale);
     height: 2.5rem;
     padding: 0;
     border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    background: transparent;
+    border-radius: 50%;
+    background: var(--color-surface);
     color: var(--color-text);
     cursor: pointer;
+    transition:
+      border-color 0.2s,
+      color 0.2s;
   }
 
   .theme-toggle:hover {
     border-color: var(--color-accent);
+    color: var(--color-accent);
   }
 
   .theme-toggle[hidden] {
@@ -76,5 +113,18 @@ const { t } = getI18n(Astro.currentLocale);
   .theme-toggle[aria-pressed='true'] .icon-moon,
   .theme-toggle[aria-pressed='false'] .icon-sun {
     display: none;
+  }
+
+  /* El icono que aparece entra girando (la animación se repite cada vez que se muestra) */
+  .theme-toggle svg {
+    animation: icon-in 0.5s var(--ease-out);
+  }
+
+  @keyframes icon-in {
+    from {
+      opacity: 0;
+      rotate: -90deg;
+      scale: 0.5;
+    }
   }
 </style>
